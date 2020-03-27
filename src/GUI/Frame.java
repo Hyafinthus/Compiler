@@ -1,5 +1,6 @@
 package GUI;
 
+import Lexical.Dfa;
 import Lexical.Dfa2Token;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -131,8 +132,7 @@ public class Frame extends JFrame implements ActionListener {
       // 读取excel文件到资源管理器中
       resourceManager.NFAexcel_reader(FA);
 
-      // 创建Lexical中对象 传入text
-      Dfa2Token dfa2Token = new Dfa2Token(this.text);
+
 
       // DFA转换表显示界面设置
       jt1 = new JTable(resourceManager.getDFAdata(), resourceManager.getDFAdataTitle());
@@ -163,6 +163,11 @@ public class Frame extends JFrame implements ActionListener {
     } else if (e.getSource().equals(jb4)) {
       // 读取excel文件到资源管理器中
       resourceManager.DFAexcel_reader(FA);
+
+      // 创建Dfa对象 传入DFA信息
+      Dfa dfa = new Dfa(resourceManager.getDFAdataTitle(), resourceManager.getDFAdata());
+      // 创建Lexical中对象 传入text
+      Dfa2Token dfa2Token = new Dfa2Token(this.text);
 
       // DFA转换表显示界面设置
       jt1 = new JTable(resourceManager.getDFAdata(), resourceManager.getDFAdataTitle());
