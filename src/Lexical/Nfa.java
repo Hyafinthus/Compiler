@@ -26,8 +26,8 @@ public class Nfa {
 
   // NFA转换表，-1为无此转换路径，其他数字为状态号
   // Integer为状态号，初始状态为0
-  // List为该状态可转的所有状态，由于NFA接收同一字符可以转到多个状态，因此为两层List嵌套
-  public Map<Integer, List<List<Integer>>> nfaTable = new HashMap<>();
+  // List为该状态可转的所有状态，由于NFA接收同一字符可以转到多个状态，因此为List嵌套Set
+  public Map<Integer, List<Set<Integer>>> nfaTable = new HashMap<>();
 
   public Nfa(Vector<Vector<String>> nfaData) {
     int length = nfaData.get(0).size();
@@ -42,9 +42,9 @@ public class Nfa {
       }
       else {
         nfaState.put(Integer.valueOf(line.get(0)), line.get(1));
-        List<List<Integer>> nfaTableLine = new ArrayList<>();
+        List<Set<Integer>> nfaTableLine = new ArrayList<>();
         for (int i = 2; i < length; i++) {
-    	  List<Integer> stateCell = new ArrayList<>();
+    	  Set<Integer> stateCell = new HashSet<>();
     	  String[] cellString = line.get(i).split(",");
     	  int cellUnitNum = cellString.length;
     	  for (int j = 0; j < cellUnitNum; j++) {
@@ -59,9 +59,9 @@ public class Nfa {
   
   //能够从NFA的状态s开始只通过ε转换到达的NFA状态集合
   //没有状态返回一个空列表
-  private ArrayList<Integer> epsilonClosure(int s) {
+  private HashSet<Integer> epsilonClosure(int s) {
 	int epsilonIndex = nfaInputIndex.get("ε");
-	ArrayList<Integer> avaliableState = new ArrayList<Integer>();
+	HashSet<Integer> avaliableState = new HashSet<Integer>();
 	avaliableState.add(s);
 	if(!nfaTable.get(s).get(epsilonIndex).contains(-1)) {
 	  avaliableState.addAll(nfaTable.get(s).get(epsilonIndex));
@@ -70,9 +70,9 @@ public class Nfa {
   }
   
   //能够从NFA的状态集合stateList开始只通过ε转换到达的NFA状态集合 
-  private ArrayList<Integer> epsilonClosure(List<Integer> stateList) {
+  private HashSet<Integer> epsilonClosure(Set<Integer> stateList) {
 	 Stack<Integer> stateStack = new Stack<Integer>();
-	 ArrayList<Integer> avaliableState = new ArrayList<Integer>();
+	 HashSet<Integer> avaliableState = new HashSet<Integer>();
 	 avaliableState.addAll(stateList);
 	 stateStack.addAll(stateList);
 	 while (stateStack.size() > 0) {
@@ -88,9 +88,9 @@ public class Nfa {
   }
 
   //能够从T中的某个状态s出发通过标号为ch的转换到达的NFA状态的集合
-  private ArrayList<Integer> move(List<Integer> stateList,String ch) {
+  private HashSet<Integer> move(Set<Integer> stateList,String ch) {
 	int chIndex = nfaInputIndex.get(ch);
-	ArrayList<Integer> avaliableState = new ArrayList<Integer>();
+	HashSet<Integer> avaliableState = new HashSet<Integer>();
 	for(int state:stateList) {
       if(nfaTable.get(state).get(chIndex).size() == 1 && 
     		  nfaTable.get(state).get(chIndex).contains(-1)) {
@@ -102,48 +102,57 @@ public class Nfa {
 	return avaliableState;
   }
   
+  //将此Nfa通过子集构造法转换成Dfa
   public Dfa toDfa() {
 	  HashMap<String, Integer> dfaInputIndex = new HashMap<String, Integer>();
 	  HashMap<Integer, String> dfaState = new HashMap<Integer,String>();
 	  HashMap<Integer, List<Integer>> dfaTable = new HashMap<Integer, List<Integer>>();
-	  HashMap<List<Integer>,Integer> nfa2dfaState = new HashMap<List<Integer>,Integer>();
+	  
+	  HashMap<Set<Integer>,Integer> nfa2dfaState = new HashMap<Set<Integer>,Integer>();
+	  
 	  dfaInputIndex.putAll(nfaInputIndex);
 	  dfaInputIndex.remove("ε");
-	  Queue<ArrayList<Integer>> undefinedLists = new LinkedList<ArrayList<Integer>>();
-	  Queue<ArrayList<Integer>> definedLists = new LinkedList<ArrayList<Integer>>();
+	  
+	  Queue<HashSet<Integer>> undefinedLists = new LinkedList<HashSet<Integer>>();
+	  Queue<HashSet<Integer>> definedLists = new LinkedList<HashSet<Integer>>();
+	  
 	  undefinedLists.offer(epsilonClosure(0));
 	  int count = 0;
 	  nfa2dfaState.put(epsilonClosure(0),count);
 	  count++;
 	  while (!undefinedLists.isEmpty()) {
-		ArrayList<Integer> combineState = undefinedLists.poll();
+		HashSet<Integer> combineState = undefinedLists.poll();
 		definedLists.offer(combineState);
+		
+		// 子集构造法可能会合并某些终止状态，同时把他们代表的种别码合并，用/分割
 		HashSet<String> tokenIdns = new HashSet<String>();
 		for(int state:combineState) {
-		  tokenIdns.add(nfaState.get(state));	
+		  if(nfaState.get(state).length()>0) tokenIdns.add(nfaState.get(state));	
 		}
 		dfaState.put(nfa2dfaState.get(combineState),String.join("/",tokenIdns));
+		
 		ArrayList<Integer> nfaStateAvaliable = new ArrayList<Integer>();
 		for(int i=0;i<dfaInputIndex.size();i++) {
 			nfaStateAvaliable.add(-1);
 		}
+		
 		dfaTable.put(nfa2dfaState.get(combineState),nfaStateAvaliable);
+		
 		for(String ch:dfaInputIndex.keySet()) {
-          System.out.println("combineState:"+combineState);
-          System.out.println("ch:"+ch);
-          System.out.println("move:"+move(combineState,ch));
-          ArrayList<Integer> newCombineState = epsilonClosure(move(combineState,ch));
-		  if(!undefinedLists.contains(newCombineState) && !definedLists.contains(newCombineState) &&
-				  newCombineState.size()>0) {
-			undefinedLists.offer(newCombineState);
-			nfa2dfaState.put(newCombineState,count);
-			int chIndex = dfaInputIndex.get(ch);
-			dfaTable.get(nfa2dfaState.get(combineState)).set(chIndex,nfa2dfaState.get(newCombineState));
-			count++;
-		  }		  
+          HashSet<Integer> newCombineState = epsilonClosure(move(combineState,ch));
+          if(newCombineState.size()>0) {
+			if(!undefinedLists.contains(newCombineState) && !definedLists.contains(newCombineState)) {
+		      undefinedLists.offer(newCombineState);
+			  nfa2dfaState.put(newCombineState,count);
+			  count++;
+			 }
+			 int chIndex = dfaInputIndex.get(ch);
+			 dfaTable.get(nfa2dfaState.get(combineState)).set(chIndex,nfa2dfaState.get(newCombineState));
+          }
 		}
 		
 	  }
+	  System.out.println("nfa2dfaState:"+nfa2dfaState);
 	return new Dfa(dfaInputIndex,dfaState,dfaTable);
 	  
   }
