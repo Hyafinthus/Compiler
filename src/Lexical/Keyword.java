@@ -7,35 +7,18 @@ import java.util.Map;
 import java.util.Set;
 
 public final class Keyword {
-
   // 关键字
   public static Set<String> keywords =
       new HashSet<>(Arrays.asList("int", "float", "bool", "char", "record", "if", "else", "while",
           "do", "break", "continue", "true", "false", "proc", "call", "return"));
 
+  // 二元运算符
+  public static Set<String> operations = new HashSet<>(
+      Arrays.asList("+=", "-=", "*=", "/=", "++", "--", "<=", ">=", "!=", "==", "&&", "||"));
+
   // 单词到种别码映射
   public static Map<String, String> species = new HashMap<>();
-
-  public static Set<String> a2d =
-      new HashSet<>(Arrays.asList("a", "b", "c", "d", "A", "B", "C", "D"));
-  public static Set<String> e = new HashSet<>(Arrays.asList("e", "E"));
-  public static Set<String> f = new HashSet<>(Arrays.asList("f", "F"));
-  public static Set<String> g2w = new HashSet<>(Arrays.asList("g", "h", "i", "j", "k", "l", "m",
-      "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "G", "H", "I", "J", "J", "L", "M", "N", "O",
-      "P", "Q", "R", "S", "T", "U", "V", "W"));
-  public static Set<String> x = new HashSet<>(Arrays.asList("x", "X"));
-  public static Set<String> y2z = new HashSet<>(Arrays.asList("y", "Y", "z", "Z"));
-
-  public static Set<String> d1_7 = new HashSet<>(Arrays.asList("1", "2", "3", "4", "5", "6", "7"));
-  public static Set<String> d8_9 = new HashSet<>(Arrays.asList("8", "9"));
-
-  public static Set<String> plusminus = new HashSet<>(Arrays.asList("+", "-"));
-  public static Set<String> oper =
-      new HashSet<>(Arrays.asList("%", "<", ">", "=", "!", "&", "|", "^"));
-  public static Set<String> deli =
-      new HashSet<>(Arrays.asList(",", ";", ":", "?", "(", ")", "[", "]", "{", "}"));
-
-  public Keyword() {
+  static {
     // 算术运算符
     species.put("+", "PLS");
     species.put("-", "MNS");
@@ -79,8 +62,27 @@ public final class Keyword {
     species.put("}", "LRP");
   }
 
+  public static Set<String> a2d =
+      new HashSet<>(Arrays.asList("a", "b", "c", "d", "A", "B", "C", "D"));
+  public static Set<String> e = new HashSet<>(Arrays.asList("e", "E"));
+  public static Set<String> f = new HashSet<>(Arrays.asList("f", "F"));
+  public static Set<String> g2w = new HashSet<>(Arrays.asList("g", "h", "i", "j", "k", "l", "m",
+      "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "G", "H", "I", "J", "J", "L", "M", "N", "O",
+      "P", "Q", "R", "S", "T", "U", "V", "W"));
+  public static Set<String> x = new HashSet<>(Arrays.asList("x", "X"));
+  public static Set<String> y2z = new HashSet<>(Arrays.asList("y", "Y", "z", "Z"));
+
+  public static Set<String> d1_7 = new HashSet<>(Arrays.asList("1", "2", "3", "4", "5", "6", "7"));
+  public static Set<String> d8_9 = new HashSet<>(Arrays.asList("8", "9"));
+
+  public static Set<String> plusminus = new HashSet<>(Arrays.asList("+", "-"));
+  public static Set<String> oper =
+      new HashSet<>(Arrays.asList("%", "<", ">", "=", "!", "&", "|", "^"));
+  public static Set<String> deli =
+      new HashSet<>(Arrays.asList(",", ";", ":", "?", "(", ")", "[", "]", "{", "}"));
+
   // 单个读入字符到表头映射
-  public String getInput(String chara) {
+  public static String getInputType(String chara) {
     if (a2d.contains(chara)) {
       return "a-d";
     } else if (e.contains(chara)) {
@@ -107,5 +109,4 @@ public final class Keyword {
       return chara;
     }
   }
-
 }

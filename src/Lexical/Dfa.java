@@ -51,5 +51,4 @@ public class Dfa {
       return true;
     }
   }
-
 }

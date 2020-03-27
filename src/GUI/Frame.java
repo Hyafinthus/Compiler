@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -132,8 +133,6 @@ public class Frame extends JFrame implements ActionListener {
       // 读取excel文件到资源管理器中
       resourceManager.NFAexcel_reader(FA);
 
-
-
       // DFA转换表显示界面设置
       jt1 = new JTable(resourceManager.getDFAdata(), resourceManager.getDFAdataTitle());
       setTableFormat(jt1);
@@ -167,7 +166,12 @@ public class Frame extends JFrame implements ActionListener {
       // 创建Dfa对象 传入DFA信息
       Dfa dfa = new Dfa(resourceManager.getDFAdataTitle(), resourceManager.getDFAdata());
       // 创建Lexical中对象 传入text
-      Dfa2Token dfa2Token = new Dfa2Token(this.text);
+      try {
+        Dfa2Token dfa2Token = new Dfa2Token(dfa, this.text);
+        dfa2Token.analysis();
+      } catch (FileNotFoundException e1) {
+        e1.printStackTrace();
+      }
 
       // DFA转换表显示界面设置
       jt1 = new JTable(resourceManager.getDFAdata(), resourceManager.getDFAdataTitle());
