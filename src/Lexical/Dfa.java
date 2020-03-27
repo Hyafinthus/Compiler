@@ -42,8 +42,19 @@ public class Dfa {
       dfaTable.put(Integer.valueOf(line.get(0)), dfaTableLine);
     }
   }
+  
+  public Dfa(HashMap<String, Integer> dfaInputIndex,HashMap<Integer, String> dfaState,HashMap<Integer, List<Integer>> dfaTable) {
+	  this.dfaInputIndex.putAll(dfaInputIndex);
+	  this.dfaState.putAll(dfaState);
+	  this.dfaTable.putAll(dfaTable);
+  }
 
-  // 某状态是否为终结状态
+  @Override
+  public String toString() {
+	return "Dfa [dfaInputIndex=" + dfaInputIndex + ", dfaState=" + dfaState + ", dfaTable=" + dfaTable + "]";
+  }
+
+// 某状态是否为终结状态
   public boolean isTerminal(Integer state) {
     if (dfaState.get(state).equals("")) {
       return false;

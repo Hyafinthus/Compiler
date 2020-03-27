@@ -6,6 +6,8 @@ import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
 
+import Lexical.Nfa;
+
 public class ResourceManager {
   // 将NFA表格读入此处
   private Vector<Vector<String>> NFAdata = new Vector<Vector<String>>();
@@ -54,10 +56,12 @@ public class ResourceManager {
         NFAdata.add(tempRow);
       }
       book.close();
+      Nfa nfa = new Nfa(NFAdata);
+      System.out.print(nfa.toDfa());
     } catch (Exception e) {
       e.printStackTrace();
     }
-
+    
     // 将NFA转换为DFA
     NFAtoDFA();
   }
