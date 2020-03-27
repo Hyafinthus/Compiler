@@ -57,7 +57,7 @@ public class ResourceManager {
       }
       book.close();
       Nfa nfa = new Nfa(NFAdata);
-      System.out.print(nfa);
+      System.out.print(nfa.toDfa());
     } catch (Exception e) {
       e.printStackTrace();
     }

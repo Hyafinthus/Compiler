@@ -2,8 +2,11 @@ package Lexical;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
@@ -56,38 +59,41 @@ public class Nfa {
   
   //能够从NFA的状态s开始只通过ε转换到达的NFA状态集合
   //没有状态返回一个空列表
-  private List<Integer> epsilonClosure(int s) {
+  private ArrayList<Integer> epsilonClosure(int s) {
 	int epsilonIndex = nfaInputIndex.get("ε");
-	List<Integer> avaliableState = nfaTable.get(s).get(epsilonIndex);
-	if(avaliableState.contains(-1)) {
-		return new ArrayList<Integer>();
+	ArrayList<Integer> avaliableState = new ArrayList<Integer>();
+	avaliableState.add(s);
+	if(!nfaTable.get(s).get(epsilonIndex).contains(-1)) {
+	  avaliableState.addAll(nfaTable.get(s).get(epsilonIndex));
 	}
-	else {
-		return avaliableState;
-	}
+	return avaliableState;
   }
   
   //能够从NFA的状态集合stateList开始只通过ε转换到达的NFA状态集合 
-  private List<Integer> epsilonClosure(List<Integer> stateList) {
+  private ArrayList<Integer> epsilonClosure(List<Integer> stateList) {
 	 Stack<Integer> stateStack = new Stack<Integer>();
 	 ArrayList<Integer> avaliableState = new ArrayList<Integer>();
+	 avaliableState.addAll(stateList);
 	 stateStack.addAll(stateList);
 	 while (stateStack.size() > 0) {
 	   int top = stateStack.pop();
 	   for(int u: epsilonClosure(top)) {
-	     avaliableState.add(u);
-	     stateStack.push(u);
+		 if(u != top) {
+	       avaliableState.add(u);
+	       stateStack.push(u);
+		 }
 	   }
 	 }
 	 return avaliableState;
   }
 
   //能够从T中的某个状态s出发通过标号为ch的转换到达的NFA状态的集合
-  private List<Integer> move(List<Integer> stateList,String ch) {
+  private ArrayList<Integer> move(List<Integer> stateList,String ch) {
 	int chIndex = nfaInputIndex.get(ch);
 	ArrayList<Integer> avaliableState = new ArrayList<Integer>();
 	for(int state:stateList) {
-      if(nfaTable.get(state).get(chIndex).contains(-1)) {
+      if(nfaTable.get(state).get(chIndex).size() == 1 && 
+    		  nfaTable.get(state).get(chIndex).contains(-1)) {
     	  continue;
       } else {
     	  avaliableState.addAll(nfaTable.get(state).get(chIndex));
@@ -96,13 +102,51 @@ public class Nfa {
 	return avaliableState;
   }
   
-//  public Dfa toDfa() {
-//	  Vector<String> dfaTitle = new Vector<String>();
-//	  Vector<Vector<String>> dfaData = new Vector<Vector<String>>();
-//	  Set<String> nfaTitle = nfaInputIndex.keySet();
-//	  nfaTitle.remove("ε");
-//	  dfaTitle.addAll(nfaTitle);
-//  }
+  public Dfa toDfa() {
+	  HashMap<String, Integer> dfaInputIndex = new HashMap<String, Integer>();
+	  HashMap<Integer, String> dfaState = new HashMap<Integer,String>();
+	  HashMap<Integer, List<Integer>> dfaTable = new HashMap<Integer, List<Integer>>();
+	  HashMap<List<Integer>,Integer> nfa2dfaState = new HashMap<List<Integer>,Integer>();
+	  dfaInputIndex.putAll(nfaInputIndex);
+	  dfaInputIndex.remove("ε");
+	  Queue<ArrayList<Integer>> undefinedLists = new LinkedList<ArrayList<Integer>>();
+	  Queue<ArrayList<Integer>> definedLists = new LinkedList<ArrayList<Integer>>();
+	  undefinedLists.offer(epsilonClosure(0));
+	  int count = 0;
+	  nfa2dfaState.put(epsilonClosure(0),count);
+	  count++;
+	  while (!undefinedLists.isEmpty()) {
+		ArrayList<Integer> combineState = undefinedLists.poll();
+		definedLists.offer(combineState);
+		HashSet<String> tokenIdns = new HashSet<String>();
+		for(int state:combineState) {
+		  tokenIdns.add(nfaState.get(state));	
+		}
+		dfaState.put(nfa2dfaState.get(combineState),String.join("/",tokenIdns));
+		ArrayList<Integer> nfaStateAvaliable = new ArrayList<Integer>();
+		for(int i=0;i<dfaInputIndex.size();i++) {
+			nfaStateAvaliable.add(-1);
+		}
+		dfaTable.put(nfa2dfaState.get(combineState),nfaStateAvaliable);
+		for(String ch:dfaInputIndex.keySet()) {
+          System.out.println("combineState:"+combineState);
+          System.out.println("ch:"+ch);
+          System.out.println("move:"+move(combineState,ch));
+          ArrayList<Integer> newCombineState = epsilonClosure(move(combineState,ch));
+		  if(!undefinedLists.contains(newCombineState) && !definedLists.contains(newCombineState) &&
+				  newCombineState.size()>0) {
+			undefinedLists.offer(newCombineState);
+			nfa2dfaState.put(newCombineState,count);
+			int chIndex = dfaInputIndex.get(ch);
+			dfaTable.get(nfa2dfaState.get(combineState)).set(chIndex,nfa2dfaState.get(newCombineState));
+			count++;
+		  }		  
+		}
+		
+	  }
+	return new Dfa(dfaInputIndex,dfaState,dfaTable);
+	  
+  }
   
   // 某状态是否为终结状态
   public boolean isTerminal(Integer state) {
