@@ -56,8 +56,6 @@ public class ResourceManager {
         NFAdata.add(tempRow);
       }
       book.close();
-      Nfa nfa = new Nfa(NFAdata);
-      System.out.print(nfa.toDfa());
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -103,7 +101,9 @@ public class ResourceManager {
     }
   }
 
-
+  public Vector<Vector<String>> getNFAdata() {
+	    return this.NFAdata;
+	 }
 
   public Vector<Vector<String>> getDFAdata() {
     return this.DFAdata;
