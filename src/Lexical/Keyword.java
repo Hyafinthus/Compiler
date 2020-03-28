@@ -81,6 +81,8 @@ public final class Keyword {
   public static Set<String> deli =
       new HashSet<>(Arrays.asList(",", ";", ":", "?", "(", ")", "[", "]", "{", "}"));
 
+  public static Set<String> unique = new HashSet<>(Arrays.asList("0", "_", ".", "'", "/", "*"));
+
   // 单个读入字符到表头映射
   public static String getInputType(String chara) {
     if (a2d.contains(chara)) {
@@ -105,8 +107,10 @@ public final class Keyword {
       return "oper";
     } else if (deli.contains(chara)) {
       return "deli";
-    } else {
+    } else if (unique.contains(chara)) {
       return chara;
+    } else {
+      return "other";
     }
   }
 }

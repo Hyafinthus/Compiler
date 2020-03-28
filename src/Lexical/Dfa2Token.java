@@ -1,16 +1,13 @@
 package Lexical;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Vector;
 
 public class Dfa2Token {
   public Dfa dfa;
-  public File file;
-  public Scanner scanner;
+  public String[] lines;
 
   public int lineIndex = 0;
   public int state = 0;
@@ -22,15 +19,14 @@ public class Dfa2Token {
   public List<String> errors = new ArrayList<>();
   public List<String> reasons = new ArrayList<>();
 
-  public Dfa2Token(Dfa dfa, File file) throws FileNotFoundException {
+  public Dfa2Token(Dfa dfa, String[] lines) throws FileNotFoundException {
     this.dfa = dfa;
-    this.file = file;
-    this.scanner = new Scanner(file);
+    this.lines = lines;
   }
 
   public void analysis() {
-    while (scanner.hasNextLine()) {
-      String line = scanner.nextLine().trim();
+    for (String l : lines) {
+      String line = l.trim().replaceAll("\t", " ").replaceAll(" +", " ");
       lineIndex++;
 
       for (int i = 0; i < line.length(); i++) {

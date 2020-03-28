@@ -134,13 +134,14 @@ public class ResourceManager {
   }
 
   // 根据已有的DFA转换表和输入文件得出Token序列结果并存放
-  public void analysis(File text) {
+  public void analysis(String text) {
     // 创建Dfa对象 传入DFA信息
     Dfa dfa = new Dfa(this.getDFAdataTitle(), this.getDFAdata());
+    String[] lines = text.split("\n");
 
     // 创建Lexical中对象 传入text
     try {
-      Dfa2Token dfa2Token = new Dfa2Token(dfa, text);
+      Dfa2Token dfa2Token = new Dfa2Token(dfa, lines);
       dfa2Token.analysis();
       this.Tokendata = dfa2Token.getTokenData();
     } catch (FileNotFoundException e1) {

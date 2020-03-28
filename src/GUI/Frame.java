@@ -5,7 +5,11 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -33,11 +37,11 @@ public class Frame extends JFrame implements ActionListener {
   JScrollPane jsp1, jsp2, jsp3, jsp4, jsp5;// 定义文本域对应的滚动条
   File FA, text; // 文件
   JTable jt1, jt2, jt3; // 定义表格
-  JTextPane jtp1;//专门显示文本的文本域
+  JTextPane jtp1;// 专门显示文本的文本域
   ResourceManager resourceManager = new ResourceManager();
 
   public Frame() {
-	  
+
     // Frame初始化设置
     this.setLayout(null);
     this.setTitle("词法分析");
@@ -45,8 +49,8 @@ public class Frame extends JFrame implements ActionListener {
     this.setLocation(100, 100);
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     this.setResizable(false);
-    
-    //this.add(card);
+
+    // this.add(card);
     this.setVisible(true);
 
     // button设置
@@ -73,11 +77,11 @@ public class Frame extends JFrame implements ActionListener {
     this.jtf1 = new JTextField();
     this.jtf1.setEditable(false);
     this.jtf1.setBounds(300, 0, 1000, 30);
-    //this.jtf1.setPreferredSize(new Dimension(1000, 30));
+    // this.jtf1.setPreferredSize(new Dimension(1000, 30));
     this.jtf2 = new JTextField();
     this.jtf2.setEditable(false);
     this.jtf2.setBounds(300, 50, 1000, 30);
-    //this.jtf2.setPreferredSize(new Dimension(1000, 30));
+    // this.jtf2.setPreferredSize(new Dimension(1000, 30));
 
     // 画布初始化
     this.jp1 = new JPanel();
@@ -87,7 +91,7 @@ public class Frame extends JFrame implements ActionListener {
     this.jp1.setLocation(20, 40);
 
     paneSet(jp1);
-    
+
   }
 
   @Override
@@ -104,7 +108,7 @@ public class Frame extends JFrame implements ActionListener {
       if (state == 1) {
         return;// 撤销则返回
       } else {
-    	this.text = chooser.getSelectedFile();// f为选择到的文件
+        this.text = chooser.getSelectedFile();// f为选择到的文件
         this.jtf1.setText(this.text.getAbsolutePath());
         readtext();
       }
@@ -119,13 +123,13 @@ public class Frame extends JFrame implements ActionListener {
       if (state == 1) {
         return;// 撤销则返回
       } else {
-    	this.FA = chooser.getSelectedFile();// f为选择到的文件
-    	this.jtf2.setText(FA.getAbsolutePath());
+        this.FA = chooser.getSelectedFile();// f为选择到的文件
+        this.jtf2.setText(FA.getAbsolutePath());
       }
     } else if (e.getSource().equals(jb3)) {
       // 读取excel文件到资源管理器中
       resourceManager.NFAexcel_reader(FA);
-      resourceManager.analysis(text);
+      resourceManager.analysis(this.jtp1.getText());
 
       // DFA转换表显示界面设置
       this.jt1 = new JTable(resourceManager.getDFAdata(), resourceManager.getDFAdataTitle());
@@ -142,7 +146,7 @@ public class Frame extends JFrame implements ActionListener {
       this.jsp2 = new JScrollPane(jta2);
       this.jsp2.setBounds(920, 160, 200, 500);
       this.jsp2.setViewportView(jt2);
-      
+
       // 错误信息界面设置
       this.jt3 = new JTable(resourceManager.getErrordata(), resourceManager.getErrordataTitle());
       setTableFormat(jt3);
@@ -157,11 +161,11 @@ public class Frame extends JFrame implements ActionListener {
       this.jp2.setLocation(20, 40);
       this.jp2.setLayout(null);
       paneSet(jp2);
-      
+
     } else if (e.getSource().equals(jb4)) {
       // 读取excel文件到资源管理器中
       resourceManager.DFAexcel_reader(FA);
-      resourceManager.analysis(text);
+      resourceManager.analysis(this.jtp1.getText());
 
       // DFA转换表显示界面设置
       this.jt1 = new JTable(resourceManager.getDFAdata(), resourceManager.getDFAdataTitle());
@@ -178,7 +182,7 @@ public class Frame extends JFrame implements ActionListener {
       this.jsp2 = new JScrollPane(jta2);
       this.jsp2.setBounds(920, 160, 200, 500);
       this.jsp2.setViewportView(jt2);
-      
+
       // 错误信息界面设置
       this.jt3 = new JTable(resourceManager.getErrordata(), resourceManager.getErrordataTitle());
       setTableFormat(jt3);
@@ -204,17 +208,17 @@ public class Frame extends JFrame implements ActionListener {
     // 对每个列设置宽度
     for (int i = 0; i < cm.getColumnCount(); i++) {
       TableColumn column = cm.getColumn(i);
-      if(table.equals(jt2) && (i==2)) {
-    	  column.setPreferredWidth(80);
-    	  column.setMaxWidth(150);
-          column.setMinWidth(60);
-      }else if(table.equals(jt3) && (i==2)) {
-    	  column.setPreferredWidth(300);
-          column.setMinWidth(300);
-      }else {
-    	  column.setPreferredWidth(60);
-          column.setMaxWidth(100);
-          column.setMinWidth(50);
+      if (table.equals(jt2) && (i == 2)) {
+        column.setPreferredWidth(80);
+        column.setMaxWidth(150);
+        column.setMinWidth(60);
+      } else if (table.equals(jt3) && (i == 2)) {
+        column.setPreferredWidth(300);
+        column.setMinWidth(300);
+      } else {
+        column.setPreferredWidth(60);
+        column.setMaxWidth(100);
+        column.setMinWidth(50);
       }
     }
 
@@ -228,92 +232,92 @@ public class Frame extends JFrame implements ActionListener {
     r.setHorizontalAlignment(JLabel.CENTER);
     table.setDefaultRenderer(Object.class, r);
   }
-  
-  //将text内容读到文本域上供修改
-  private void readtext() {
-	  //设置画板5
-	  this.jp3 = new JPanel();
-      this.jp3.setSize(1600, 768);
-      this.jp3.setLocation(20, 40);
-      this.jp3.setLayout(null);
-      
-      //设置文本域,同时禁用JTextPane的自动换行功能
-      this.jtp1 = new JTextPane(){
-    	  				public boolean getScrollableTracksViewportWidth(){
-    	  					return false;
-    	  				}
- 
-    	  				public void setSize(Dimension d){
-    	  					if(d.width<getParent().getSize().width){
-    	  						d.width=getParent().getSize().width;
-    	  					}
-    	  					d.width+=100;
-    	  					super.setSize(d);
-    	  				}
-      				}; 
-      
-      //将text读入文本域中
-      try {
-    	  FileInputStream fis = new FileInputStream(text);
-          BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));//转换成字符流，有readline方法可以直接读取一行的数据，方便文本的读取
-          StringBuffer str = new StringBuffer("");//读取第一行
-          String tempstr = bufferedReader.readLine();
-          //读取所有文本，放到StringBuffer 中，用来在文本域中展示
-          while (tempstr!=null) {
-        	  str.append(tempstr+"\n");
-        	  tempstr = bufferedReader.readLine();//读取下一行
-          }
-          bufferedReader.close();//关闭输入流
-          //设置文本域及画板显示
-          this.jtp1.setFont(new Font("仿宋",Font.PLAIN, 20));
-          this.jtp1.setText(str.toString());
-          this.jsp5 = new JScrollPane(jtp1);
-          this.jsp5.setBounds(0, 160, 480, 500);
-          paneSet(jp3);
 
-      } catch (IOException e) {
-    	  e.printStackTrace();
+  // 将text内容读到文本域上供修改
+  private void readtext() {
+    // 设置画板5
+    this.jp3 = new JPanel();
+    this.jp3.setSize(1600, 768);
+    this.jp3.setLocation(20, 40);
+    this.jp3.setLayout(null);
+
+    // 设置文本域,同时禁用JTextPane的自动换行功能
+    this.jtp1 = new JTextPane() {
+      private static final long serialVersionUID = 4854670851066293168L;
+
+      public boolean getScrollableTracksViewportWidth() {
+        return false;
       }
+
+      public void setSize(Dimension d) {
+        if (d.width < getParent().getSize().width) {
+          d.width = getParent().getSize().width;
+        }
+        d.width += 100;
+        super.setSize(d);
+      }
+    };
+
+    // 将text读入文本域中
+    try {
+      FileInputStream fis = new FileInputStream(text);
+      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));// 转换成字符流，有readline方法可以直接读取一行的数据，方便文本的读取
+      StringBuffer str = new StringBuffer("");// 读取第一行
+      String tempstr = bufferedReader.readLine();
+      // 读取所有文本，放到StringBuffer 中，用来在文本域中展示
+      while (tempstr != null) {
+        str.append(tempstr + "\n");
+        tempstr = bufferedReader.readLine();// 读取下一行
+      }
+      bufferedReader.close();// 关闭输入流
+      // 设置文本域及画板显示
+      this.jtp1.setFont(new Font("Consolas", Font.PLAIN, 20));
+      this.jtp1.setText(str.toString());
+      this.jsp5 = new JScrollPane(jtp1);
+      this.jsp5.setBounds(0, 160, 480, 500);
+      paneSet(jp3);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
-  
+
   private void paneSet(JPanel jp) {
-	  // 向画布添加控件
-	  if(jp.equals(this.jp1)) {
-		  this.jp1.add(jl1);
-		  this.jp1.add(jtf1);
-		  this.jp1.add(jb1);
-		  this.jp1.add(jl2);
-		  this.jp1.add(jtf2);
-		  this.jp1.add(jb2);
-		  this.jp1.add(jb3);
-		  this.jp1.add(jb4);
-		  this.setContentPane(jp1);
-	  }else if(jp.equals(this.jp2)) {
-		  this.jp2.add(jl1);
-		  this.jp2.add(jtf1);
-		  this.jp2.add(jb1);
-		  this.jp2.add(jl2);
-		  this.jp2.add(jtf2);
-		  this.jp2.add(jb2);
-		  this.jp2.add(jb3);
-		  this.jp2.add(jb4);
-		  this.jp2.add(jsp1);
-	      this.jp2.add(jsp2);
-	      this.jp2.add(jsp3);
-	      this.jp2.add(jsp5);
-	      this.setContentPane(jp2);
-	  }else if(jp.equals(this.jp3)) {
-		  this.jp3.add(jl1);
-		  this.jp3.add(jtf1);
-		  this.jp3.add(jb1);
-		  this.jp3.add(jl2);
-		  this.jp3.add(jtf2);
-		  this.jp3.add(jb2);
-		  this.jp3.add(jb3);
-		  this.jp3.add(jb4);
-		  this.jp3.add(jsp5);
-		  this.setContentPane(jp3);
-	  }
-	  
+    // 向画布添加控件
+    if (jp.equals(this.jp1)) {
+      this.jp1.add(jl1);
+      this.jp1.add(jtf1);
+      this.jp1.add(jb1);
+      this.jp1.add(jl2);
+      this.jp1.add(jtf2);
+      this.jp1.add(jb2);
+      this.jp1.add(jb3);
+      this.jp1.add(jb4);
+      this.setContentPane(jp1);
+    } else if (jp.equals(this.jp2)) {
+      this.jp2.add(jl1);
+      this.jp2.add(jtf1);
+      this.jp2.add(jb1);
+      this.jp2.add(jl2);
+      this.jp2.add(jtf2);
+      this.jp2.add(jb2);
+      this.jp2.add(jb3);
+      this.jp2.add(jb4);
+      this.jp2.add(jsp1);
+      this.jp2.add(jsp2);
+      this.jp2.add(jsp3);
+      this.jp2.add(jsp5);
+      this.setContentPane(jp2);
+    } else if (jp.equals(this.jp3)) {
+      this.jp3.add(jl1);
+      this.jp3.add(jtf1);
+      this.jp3.add(jb1);
+      this.jp3.add(jl2);
+      this.jp3.add(jtf2);
+      this.jp3.add(jb2);
+      this.jp3.add(jb3);
+      this.jp3.add(jb4);
+      this.jp3.add(jsp5);
+      this.setContentPane(jp3);
+    }
   }
 }
