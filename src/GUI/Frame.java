@@ -134,8 +134,7 @@ public class Frame extends JFrame implements ActionListener {
     } else if (e.getSource().equals(jb3)) {
       // 读取excel文件到资源管理器中
       resourceManager.NFAexcel_reader(FA);
-      Nfa nfa = new Nfa(resourceManager.getNFAdata());
-      Dfa dfa = nfa.toDfa();
+      Dfa dfa = new Dfa(resourceManager.getDFAdataTitle(), resourceManager.getDFAdata());
       try {
           Dfa2Token dfa2Token = new Dfa2Token(dfa, this.text);
           dfa2Token.analysis();

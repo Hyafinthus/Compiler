@@ -5,7 +5,7 @@ import java.util.Vector;
 import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
-
+import Lexical.Dfa;
 import Lexical.Nfa;
 
 public class ResourceManager {
@@ -59,9 +59,11 @@ public class ResourceManager {
     } catch (Exception e) {
       e.printStackTrace();
     }
-    
     // 将NFA转换为DFA
-    NFAtoDFA();
+    Nfa nfa = new Nfa(getNFAdata());
+    Dfa dfa = nfa.toDfa();
+    this.DFAdata = dfa.getDfaData();
+    this.DFAdataTitle = dfa.getDfaTitle();
   }
 
   public void DFAexcel_reader(File excel) {

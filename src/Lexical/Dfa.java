@@ -1,9 +1,14 @@
 package Lexical;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Vector;
 
 public class Dfa {
@@ -43,6 +48,41 @@ public class Dfa {
     }
   }
   
+  //返回能够被resourceManager处理的dfa头类型
+  public Vector<String> getDfaTitle(){
+    Vector<String> dfaTitle = new Vector<String>();
+    dfaTitle.add("");
+    dfaTitle.add("");
+    List<Map.Entry<String, Integer>> list = new ArrayList<>(dfaInputIndex.entrySet());
+    Collections.sort(list,new Comparator<Map.Entry<String,Integer>>(){
+    	public int compare(Entry<String, Integer> o1,Entry<String, Integer> o2) {
+    		return o1.getValue()-o2.getValue();
+    	}
+    });
+    for(Map.Entry<String, Integer> mapping:list) {
+    	dfaTitle.add(mapping.getKey());
+    }
+    return dfaTitle;
+  }
+  
+//返回能够被resourceManager处理的dfa数据类型
+  public Vector<Vector<String>> getDfaData(){
+	  Vector<Vector<String>> dfaData = new Vector<Vector<String>>();
+	  Set<Integer> keySet = dfaState.keySet();
+	  Object[] stateArray = keySet.toArray();
+	  Arrays.sort(stateArray);
+	  for(Object state:stateArray) {
+		Vector<String> dfaDataLine = new Vector<String>();
+		dfaDataLine.add(state.toString());
+		dfaDataLine.add(dfaState.get(state));
+		for(int aState:dfaTable.get(state)) {
+			dfaDataLine.add(String.valueOf(aState));
+		}
+		dfaData.add(dfaDataLine);
+	  }
+	  return dfaData;
+  }
+  
   public Dfa(HashMap<String, Integer> dfaInputIndex,HashMap<Integer, String> dfaState,HashMap<Integer, List<Integer>> dfaTable) {
 	  this.dfaInputIndex.putAll(dfaInputIndex);
 	  this.dfaState.putAll(dfaState);
@@ -54,7 +94,7 @@ public class Dfa {
 	return "Dfa [dfaInputIndex=" + dfaInputIndex + ", dfaState=" + dfaState + ", dfaTable=" + dfaTable + "]";
   }
 
-// 某状态是否为终结状态
+  // 某状态是否为终结状态
   public boolean isTerminal(Integer state) {
     if (dfaState.get(state).equals("")) {
       return false;
