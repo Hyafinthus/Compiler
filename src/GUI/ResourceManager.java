@@ -28,9 +28,7 @@ public class ResourceManager {
   private Vector<String> ErrordataTitle = new Vector<String>(Arrays.asList("行号", "错误项", "错误原因"));
 
   public ResourceManager() {
-    ErrordataTitle.add("行数");
-    ErrordataTitle.add("错误项");
-    ErrordataTitle.add("错误信息");
+
   }
 
   public void NFAexcel_reader(File excel) {
