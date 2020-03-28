@@ -57,10 +57,10 @@ public class Dfa {
 
   // 某状态是否为终结状态
   public boolean isTerminal(Integer state) {
-    if (dfaState.get(state).equals("")) {
-      return false;
-    } else {
+    if (dfaState.get(state).length() == 3) {
       return true;
+    } else {
+      return false;
     }
   }
 

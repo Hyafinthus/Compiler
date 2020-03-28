@@ -10,6 +10,7 @@ public class Dfa2Token {
   public String[] lines;
 
   public int lineIndex = 0;
+  public int charIndex = 0;
   public int state = 0;
   StringBuilder pending = new StringBuilder(); // 存储一个单词的已读字符
 
@@ -29,8 +30,8 @@ public class Dfa2Token {
       String line = l.trim().replaceAll("\t", " ").replaceAll(" +", " ");
       lineIndex++;
 
-      for (int i = 0; i < line.length(); i++) {
-        String chara = String.valueOf(line.charAt(i)); // 字符
+      for (charIndex = 0; charIndex < line.length(); charIndex++) {
+        String chara = String.valueOf(line.charAt(charIndex)); // 字符
 
         if (chara.equals(" ")) {
           endOfWord();
@@ -38,6 +39,12 @@ public class Dfa2Token {
           String inputType = Keyword.getInputType(chara);
           Integer nextState = dfa.dfaTable.get(state).get(dfa.dfaInputIndex.get(inputType));
           if (nextState == -1) { // 一个单词读完或出错
+            // 行首错误 需恐慌模式
+            if (state == 0) {
+              panic(0);
+              continue;
+            }
+
             endOfWord();
             goBack(chara);
           } else { // 一个单词未读完
@@ -70,11 +77,11 @@ public class Dfa2Token {
       String specie = dfa.dfaState.get(state);
       String attr = "";
 
-      if (state == 20 && Keyword.operations.contains(word)) { // 双运算符 存在 一词一码
+      if (specie.equals("DOP") && Keyword.operations.contains(word)) { // 双运算符 存在 一词一码
         specie = Keyword.species.get(word);
         attr = "_";
-      } else if (state == 20 && !Keyword.operations.contains(word)) { // 双运算符 不存在 错误
-        panic();
+      } else if (specie.equals("DOP") && !Keyword.operations.contains(word)) { // 双运算符 不存在 错误
+        panic(1);
         return;
       } else if (specie.equals("OPR") || specie.equals("DEL")) { // 运算符 界符 一词一码
         specie = Keyword.species.get(word);
@@ -94,12 +101,45 @@ public class Dfa2Token {
 
       state = 0;
     } else { // 非终结状态
-      panic();
+      panic(2);
     }
   }
 
-  public void panic() {
-    System.out.println("PANIC");
+  public void panic(int type) {
+    String error = pending.toString();
+    errors.add(error);
+
+    String reason = "";
+    switch (type) {
+      case 0:
+        reason = "行首错误";
+        break;
+      case 1:
+        reason = "双运算符错误";
+        break;
+      default:
+        reason = dfa.dfaState.get(state);
+        break;
+    }
+    reasons.add(reason);
+
+    indexs.add(String.valueOf(lineIndex));
+
+    state = 0;
+  }
+
+  public void restore() {
+    String line = this.lines[this.lineIndex - 1].trim().replaceAll("\t", " ").replaceAll(" +", " ");
+    while (true) {
+      charIndex++;
+      String chara = String.valueOf(line.charAt(charIndex));
+      String inputType = Keyword.getInputType(chara);
+      Integer nextState = dfa.dfaTable.get(state).get(dfa.dfaInputIndex.get(inputType));
+      if (nextState != -1) {
+        charIndex--;
+        break;
+      }
+    }
   }
 
   public Vector<Vector<String>> getTokenData() {
@@ -112,5 +152,17 @@ public class Dfa2Token {
       tokenData.add(tokenLine);
     }
     return tokenData;
+  }
+
+  public Vector<Vector<String>> getErrorData() {
+    Vector<Vector<String>> errorData = new Vector<>();
+    for (int i = 0; i < this.errors.size(); i++) {
+      Vector<String> errorLine = new Vector<>();
+      errorLine.add(this.indexs.get(i));
+      errorLine.add(this.errors.get(i));
+      errorLine.add(this.reasons.get(i));
+      errorData.add(errorLine);
+    }
+    return errorData;
   }
 }
