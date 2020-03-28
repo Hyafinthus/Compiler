@@ -1,6 +1,8 @@
 package GUI;
 
 
+import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -44,7 +46,7 @@ public class Frame extends JFrame implements ActionListener {
 
     // Frame初始化设置
     this.setLayout(null);
-    this.setTitle("词法分析");
+    this.setTitle("词法分析"); 
     this.setSize(1600, 768);
     this.setLocation(100, 100);
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -55,32 +57,32 @@ public class Frame extends JFrame implements ActionListener {
 
     // button设置
     this.jb1 = new JButton("...");
-    this.jb1.setBounds(1330, 0, 60, 30);
+    this.jb1.setBounds(1350, 40, 60, 30);
     this.jb1.addActionListener(this);
     this.jb2 = new JButton("...");
-    this.jb2.setBounds(1330, 50, 60, 30);
+    this.jb2.setBounds(1350, 90, 60, 30);
     this.jb2.addActionListener(this);
     this.jb3 = new JButton("NFA分析表转换");
     this.jb3.addActionListener(this);
-    this.jb3.setBounds(580, 100, 150, 30);
+    this.jb3.setBounds(600, 160, 150, 30);
     this.jb4 = new JButton("DFA分析表转换");
     this.jb4.addActionListener(this);
-    this.jb4.setBounds(780, 100, 150, 30);
+    this.jb4.setBounds(800, 160, 150, 30);
 
     // 文本设置
     this.jl1 = new JLabel("代码文件路径");
-    this.jl1.setBounds(180, 0, 100, 40);
+    this.jl1.setBounds(200, 40, 100, 40);
     this.jl2 = new JLabel("FA转换表路径");
-    this.jl2.setBounds(180, 50, 100, 40);
+    this.jl2.setBounds(200, 90, 100, 40);
 
     // 文本框设置
     this.jtf1 = new JTextField();
     this.jtf1.setEditable(false);
-    this.jtf1.setBounds(300, 0, 1000, 30);
+    this.jtf1.setBounds(320, 40, 1000, 30);
     // this.jtf1.setPreferredSize(new Dimension(1000, 30));
     this.jtf2 = new JTextField();
     this.jtf2.setEditable(false);
-    this.jtf2.setBounds(300, 50, 1000, 30);
+    this.jtf2.setBounds(320, 90, 1000, 30);
     // this.jtf2.setPreferredSize(new Dimension(1000, 30));
 
     // 画布初始化
@@ -88,7 +90,7 @@ public class Frame extends JFrame implements ActionListener {
     this.jp1.setLayout(null);
 
     this.jp1.setSize(1600, 768);
-    this.jp1.setLocation(20, 40);
+    this.jp1.setLocation(0, 0);
 
     paneSet(jp1);
 
@@ -136,7 +138,7 @@ public class Frame extends JFrame implements ActionListener {
       setTableFormat(jt1);
       this.jta1 = new JTextArea();
       this.jsp1 = new JScrollPane(jta1);
-      this.jsp1.setBounds(500, 160, 400, 500);
+      this.jsp1.setBounds(520, 200, 400, 500);
       this.jsp1.setViewportView(jt1);
 
       // Token显示界面设置
@@ -144,7 +146,7 @@ public class Frame extends JFrame implements ActionListener {
       setTableFormat(jt2);
       this.jta2 = new JTextArea();
       this.jsp2 = new JScrollPane(jta2);
-      this.jsp2.setBounds(920, 160, 200, 500);
+      this.jsp2.setBounds(940, 200, 200, 500);
       this.jsp2.setViewportView(jt2);
 
       // 错误信息界面设置
@@ -152,13 +154,13 @@ public class Frame extends JFrame implements ActionListener {
       setTableFormat(jt3);
       this.jta3 = new JTextArea();
       this.jsp3 = new JScrollPane(jta3);
-      this.jsp3.setBounds(1140, 160, 420, 500);
+      this.jsp3.setBounds(1160, 200, 420, 500);
       this.jsp3.setViewportView(jt3);
 
       // 显示画布2
       this.jp2 = new JPanel();
       this.jp2.setSize(1600, 768);
-      this.jp2.setLocation(20, 40);
+      this.jp2.setLocation(0, 0);
       this.jp2.setLayout(null);
       paneSet(jp2);
 
@@ -172,7 +174,7 @@ public class Frame extends JFrame implements ActionListener {
       setTableFormat(jt1);
       this.jta1 = new JTextArea();
       this.jsp1 = new JScrollPane(jta1);
-      this.jsp1.setBounds(500, 160, 400, 500);
+      this.jsp1.setBounds(520, 200, 400, 500);
       this.jsp1.setViewportView(jt1);
 
       // Token显示界面设置
@@ -180,7 +182,7 @@ public class Frame extends JFrame implements ActionListener {
       setTableFormat(jt2);
       this.jta2 = new JTextArea();
       this.jsp2 = new JScrollPane(jta2);
-      this.jsp2.setBounds(920, 160, 200, 500);
+      this.jsp2.setBounds(940, 200, 200, 500);
       this.jsp2.setViewportView(jt2);
 
       // 错误信息界面设置
@@ -188,13 +190,13 @@ public class Frame extends JFrame implements ActionListener {
       setTableFormat(jt3);
       this.jta3 = new JTextArea();
       this.jsp3 = new JScrollPane(jta3);
-      this.jsp3.setBounds(1140, 160, 420, 500);
+      this.jsp3.setBounds(1160, 200, 420, 500);
       this.jsp3.setViewportView(jt3);
 
       // 显示画布2
       this.jp2 = new JPanel();
       this.jp2.setSize(1600, 768);
-      this.jp2.setLocation(20, 40);
+      this.jp2.setLocation(0, 0);
       this.jp2.setLayout(null);
       paneSet(jp2);
     }
@@ -238,7 +240,7 @@ public class Frame extends JFrame implements ActionListener {
     // 设置画板5
     this.jp3 = new JPanel();
     this.jp3.setSize(1600, 768);
-    this.jp3.setLocation(20, 40);
+    this.jp3.setLocation(0, 0);
     this.jp3.setLayout(null);
 
     // 设置文本域,同时禁用JTextPane的自动换行功能
@@ -274,7 +276,7 @@ public class Frame extends JFrame implements ActionListener {
       this.jtp1.setFont(new Font("Consolas", Font.PLAIN, 20));
       this.jtp1.setText(str.toString());
       this.jsp5 = new JScrollPane(jtp1);
-      this.jsp5.setBounds(0, 160, 480, 500);
+      this.jsp5.setBounds(20, 200, 480, 500);
       paneSet(jp3);
     } catch (IOException e) {
       e.printStackTrace();
