@@ -1,8 +1,5 @@
 package GUI;
 
-
-import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -46,7 +43,7 @@ public class Frame extends JFrame implements ActionListener {
 
     // Frame初始化设置
     this.setLayout(null);
-    this.setTitle("词法分析"); 
+    this.setTitle("词法分析");
     this.setSize(1600, 768);
     this.setLocation(100, 100);
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

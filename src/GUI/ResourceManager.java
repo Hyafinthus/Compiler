@@ -144,6 +144,7 @@ public class ResourceManager {
       Dfa2Token dfa2Token = new Dfa2Token(dfa, lines);
       dfa2Token.analysis();
       this.Tokendata = dfa2Token.getTokenData();
+      this.Errordata = dfa2Token.getErrorData();
     } catch (FileNotFoundException e1) {
       e1.printStackTrace();
     }
