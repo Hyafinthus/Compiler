@@ -1,12 +1,15 @@
 package GUI;
 
+import Lexical.Dfa;
+import Lexical.Dfa2Token;
+import Lexical.Nfa;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.Vector;
 import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
-import Lexical.Dfa;
-import Lexical.Nfa;
 
 public class ResourceManager {
   // 将NFA表格读入此处
@@ -18,11 +21,11 @@ public class ResourceManager {
 
   // Token序列写入此处
   private Vector<Vector<String>> Tokendata = new Vector<Vector<String>>();
-  private Vector<String> TokendataTitle = new Vector<String>();
+  private Vector<String> TokendataTitle = new Vector<String>(Arrays.asList("行号", "单词", "Token"));
 
   // 错误信息存放此处
   private Vector<Vector<String>> Errordata = new Vector<Vector<String>>();
-  private Vector<String> ErrordataTitle = new Vector<String>();
+  private Vector<String> ErrordataTitle = new Vector<String>(Arrays.asList("行号", "错误项", "错误原因"));
 
   public ResourceManager() {
     ErrordataTitle.add("行数");
@@ -59,11 +62,8 @@ public class ResourceManager {
     } catch (Exception e) {
       e.printStackTrace();
     }
-    // 将NFA转换为DFA
-    Nfa nfa = new Nfa(getNFAdata());
-    Dfa dfa = nfa.toDfa();
-    this.DFAdata = dfa.getDfaData();
-    this.DFAdataTitle = dfa.getDfaTitle();
+
+    this.NFAtoDFA();
   }
 
   public void DFAexcel_reader(File excel) {
@@ -103,10 +103,6 @@ public class ResourceManager {
     }
   }
 
-  public Vector<Vector<String>> getNFAdata() {
-	    return this.NFAdata;
-	 }
-
   public Vector<Vector<String>> getDFAdata() {
     return this.DFAdata;
   }
@@ -131,14 +127,26 @@ public class ResourceManager {
     return this.ErrordataTitle;
   }
 
-  // NFA转换到DFA,航航加油 =v=
+  // NFA转换为DFA
   private void NFAtoDFA() {
-
+    Nfa nfa = new Nfa(this.NFAdata);
+    Dfa dfa = nfa.toDfa();
+    this.DFAdata = dfa.getDfaData();
+    this.DFAdataTitle = dfa.getDfaTitle();
   }
 
   // 根据已有的DFA转换表和输入文件得出Token序列结果并存放
   public void analysis(File text) {
+    // 创建Dfa对象 传入DFA信息
+    Dfa dfa = new Dfa(this.getDFAdataTitle(), this.getDFAdata());
 
+    // 创建Lexical中对象 传入text
+    try {
+      Dfa2Token dfa2Token = new Dfa2Token(dfa, text);
+      dfa2Token.analysis();
+      this.Tokendata = dfa2Token.getTokenData();
+    } catch (FileNotFoundException e1) {
+      e1.printStackTrace();
+    }
   }
-
 }

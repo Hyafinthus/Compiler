@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Vector;
 
 public class Dfa2Token {
   public Dfa dfa;
@@ -103,5 +104,17 @@ public class Dfa2Token {
 
   public void panic() {
     System.out.println("PANIC");
+  }
+
+  public Vector<Vector<String>> getTokenData() {
+    Vector<Vector<String>> tokenData = new Vector<>();
+    for (int i = 0; i < this.words.size(); i++) {
+      Vector<String> tokenLine = new Vector<>();
+      tokenLine.add(this.indexs.get(i));
+      tokenLine.add(this.words.get(i));
+      tokenLine.add(this.tokens.get(i));
+      tokenData.add(tokenLine);
+    }
+    return tokenData;
   }
 }
