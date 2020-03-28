@@ -169,6 +169,7 @@ public class Frame extends JFrame implements ActionListener {
       try {
         Dfa2Token dfa2Token = new Dfa2Token(dfa, this.text);
         dfa2Token.analysis();
+        System.out.println("123");
       } catch (FileNotFoundException e1) {
         e1.printStackTrace();
       }
