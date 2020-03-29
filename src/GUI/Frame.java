@@ -143,7 +143,7 @@ public class Frame extends JFrame implements ActionListener {
       setTableFormat(jt2);
       this.jta2 = new JTextArea();
       this.jsp2 = new JScrollPane(jta2);
-      this.jsp2.setBounds(940, 200, 200, 500);
+      this.jsp2.setBounds(940, 200, 280, 500);
       this.jsp2.setViewportView(jt2);
 
       // 错误信息界面设置
@@ -151,7 +151,7 @@ public class Frame extends JFrame implements ActionListener {
       setTableFormat(jt3);
       this.jta3 = new JTextArea();
       this.jsp3 = new JScrollPane(jta3);
-      this.jsp3.setBounds(1160, 200, 420, 500);
+      this.jsp3.setBounds(1240, 200, 320, 500);
       this.jsp3.setViewportView(jt3);
 
       // 显示画布2
@@ -179,7 +179,7 @@ public class Frame extends JFrame implements ActionListener {
       setTableFormat(jt2);
       this.jta2 = new JTextArea();
       this.jsp2 = new JScrollPane(jta2);
-      this.jsp2.setBounds(940, 200, 200, 500);
+      this.jsp2.setBounds(940, 200, 280, 500);
       this.jsp2.setViewportView(jt2);
 
       // 错误信息界面设置
@@ -187,7 +187,7 @@ public class Frame extends JFrame implements ActionListener {
       setTableFormat(jt3);
       this.jta3 = new JTextArea();
       this.jsp3 = new JScrollPane(jta3);
-      this.jsp3.setBounds(1160, 200, 420, 500);
+      this.jsp3.setBounds(1240, 200, 320, 500);
       this.jsp3.setViewportView(jt3);
 
       // 显示画布2
@@ -207,13 +207,26 @@ public class Frame extends JFrame implements ActionListener {
     // 对每个列设置宽度
     for (int i = 0; i < cm.getColumnCount(); i++) {
       TableColumn column = cm.getColumn(i);
-      if (table.equals(jt2) && (i == 2)) {
-        column.setPreferredWidth(80);
-        column.setMaxWidth(150);
-        column.setMinWidth(60);
-      } else if (table.equals(jt3) && (i == 2)) {
-        column.setPreferredWidth(300);
-        column.setMinWidth(300);
+      if (table.equals(jt2)) {
+        if(i == 2) {
+        	column.setPreferredWidth(120);
+            column.setMaxWidth(150);
+            column.setMinWidth(60);
+        }else {
+        	column.setPreferredWidth(80);
+            column.setMaxWidth(150);
+            column.setMinWidth(60);
+        }
+      } else if (table.equals(jt3)) {
+    	  if(i == 2) {
+          	column.setPreferredWidth(160);
+              column.setMaxWidth(150);
+              column.setMinWidth(60);
+          }else {
+          	column.setPreferredWidth(85);
+              column.setMaxWidth(150);
+              column.setMinWidth(60);
+          }
       } else {
         column.setPreferredWidth(60);
         column.setMaxWidth(100);

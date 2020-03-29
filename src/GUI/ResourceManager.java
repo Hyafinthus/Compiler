@@ -37,6 +37,9 @@ public class ResourceManager {
     Sheet sheet;
     Workbook book;
     Cell cell;
+    NFAdata = new Vector<Vector<String>>();
+    DFAdata = new Vector<Vector<String>>();
+    DFAdataTitle = new Vector<String>();
     try {
       book = Workbook.getWorkbook(excel);
 
@@ -70,6 +73,8 @@ public class ResourceManager {
     Sheet sheet;
     Workbook book;
     Cell cell;
+    DFAdata = new Vector<Vector<String>>();
+    DFAdataTitle = new Vector<String>();
     try {
       book = Workbook.getWorkbook(excel);
 
