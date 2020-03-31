@@ -27,6 +27,7 @@ public class Dfa2Token {
     this.lines = lines;
   }
 
+  // 对代码文件进行分析
   public void analysis() {
     for (lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       String line = lines[lineIndex].trim().replaceAll("\t", " ").replaceAll(" +", " ");
@@ -74,6 +75,7 @@ public class Dfa2Token {
     }
   }
 
+  // 一个单词读取结束
   public void endOfWord() {
     if (dfa.isTerminal(state)) { // 终结状态
       String word = pending.toString();
@@ -112,7 +114,7 @@ public class Dfa2Token {
     }
   }
 
-  // 0:行首错误 1:词首错误 2:双运算符错误 3:DFA标注错误
+  // 0:行首错误 1:词首错误 2:双运算符错误 -1:DFA标注错误
   public void panic(int type) {
     String error = pending.toString();
     errors.add(error);
@@ -140,6 +142,7 @@ public class Dfa2Token {
     restore();
   }
 
+  // 从错误中恢复 采用恐慌模式
   public void restore() {
     state = 0;
     String line = this.lines[this.lineIndex].trim().replaceAll("\t", " ").replaceAll(" +", " ");

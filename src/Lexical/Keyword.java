@@ -8,9 +8,9 @@ import java.util.Set;
 
 public final class Keyword {
   // 关键字
-  public static Set<String> keywords =
-      new HashSet<>(Arrays.asList("int", "float", "bool", "char", "record", "if", "else", "while",
-          "do", "break", "continue", "true", "false", "proc", "call", "return"));
+  public static Set<String> keywords = new HashSet<>(Arrays.asList("int", "float", "bool", "char",
+      "record", "if", "else", "switch", "case", "default", "true", "false", "for", "do", "while",
+      "break", "continue", "proc", "call", "return"));
 
   // 二元运算符
   public static Set<String> operations = new HashSet<>(

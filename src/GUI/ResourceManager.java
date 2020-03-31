@@ -27,10 +27,6 @@ public class ResourceManager {
   private Vector<Vector<String>> Errordata = new Vector<Vector<String>>();
   private Vector<String> ErrordataTitle = new Vector<String>(Arrays.asList("行号", "错误项", "错误原因"));
 
-  public ResourceManager() {
-
-  }
-
   public void NFAexcel_reader(File excel) {
     int columnCount;
     int rowCount;
@@ -43,7 +39,7 @@ public class ResourceManager {
     try {
       book = Workbook.getWorkbook(excel);
 
-      // 获得第一个工作表对象(ecxel中sheet的编号从0开始,0,1,2,3,....)
+      // 获得第一个工作表对象(excel中sheet的编号从0开始,0,1,2,3,....)
       sheet = book.getSheet(0);
 
       // 获取行数与列数
@@ -78,7 +74,7 @@ public class ResourceManager {
     try {
       book = Workbook.getWorkbook(excel);
 
-      // 获得第一个工作表对象(ecxel中sheet的编号从0开始,0,1,2,3,....)
+      // 获得第一个工作表对象(excel中sheet的编号从0开始,0,1,2,3,....)
       sheet = book.getSheet(0);
 
       // 获取行数与列数
