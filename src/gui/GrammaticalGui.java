@@ -98,6 +98,7 @@ public class GrammaticalGui extends JFrame implements ActionListener{
 	  this.jp2.setLayout(null);
 	  
 	  //读入分析表文件，修改资源管理中的数据内容
+	  ResourceManager.LLexcel_reader(analysisExcel);
 	  
 	  // first,follow集界面设置
 	  this.jt1 = new JTable(ResourceManager.FirstFollowdata, ResourceManager.FirstFollowdataTitle);

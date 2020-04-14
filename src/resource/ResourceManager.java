@@ -116,6 +116,46 @@ public class ResourceManager {
       e.printStackTrace();
     }
   }
+  
+  public static void LLexcel_reader(File excel) {
+	  int columnCount;
+	    int rowCount;
+	    Sheet sheet;
+	    Workbook book;
+	    Cell cell;
+	    LLanalysisdata = new Vector<Vector<String>>();
+	    LLanalysisdataTitle = new Vector<String>();
+	    try {
+	      book = Workbook.getWorkbook(excel);
+
+	      // 获得第一个工作表对象(excel中sheet的编号从0开始,0,1,2,3,....)
+	      sheet = book.getSheet(0);
+
+	      // 获取行数与列数
+	      columnCount = sheet.getColumns();
+	      rowCount = sheet.getRows();
+
+	      // 得到DFAdataTitle
+	      for (int i = 0; i < columnCount; i++) {
+	        cell = sheet.getCell(i, 0);
+	        LLanalysisdataTitle.add(cell.getContents());
+	      }
+
+	      for (int j = 1; j < rowCount; j++) {
+	        Vector<String> tempRow = new Vector<String>();
+	        // 循环读取
+	        for (int k = 0; k < columnCount; k++) {
+	          cell = sheet.getCell(k, j);
+	          tempRow.add(cell.getContents());
+	        }
+	        LLanalysisdata.add(tempRow);
+	      }
+	      book.close();
+	    } catch (Exception e) {
+	      e.printStackTrace();
+	    }
+		
+  }
 
   // NFA转换为DFA
   static private void NFAtoDFA() {
@@ -141,4 +181,6 @@ public class ResourceManager {
       e1.printStackTrace();
     }
   }
+
+
 }
