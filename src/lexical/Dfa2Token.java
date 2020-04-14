@@ -1,4 +1,4 @@
-package Lexical;
+package lexical;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;

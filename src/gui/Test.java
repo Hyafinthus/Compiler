@@ -1,7 +1,7 @@
-package GUI;
+package gui;
 
 public class Test {
   public static void main(String[] args) {
-    Frame frame = new Frame();
+    // LexicalGui frame = new LexicalGui();
   }
 }

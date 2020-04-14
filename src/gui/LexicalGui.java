@@ -1,4 +1,4 @@
-package GUI;
+package gui;
 
 import java.awt.Dimension;
 import java.awt.Font;
@@ -24,8 +24,10 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import resource.FileFilter;
+import resource.ResourceManager;
 
-public class Frame extends JFrame implements ActionListener {
+public class LexicalGui extends JFrame implements ActionListener {
   private static final long serialVersionUID = -4956743638930220924L;
 
   JButton jb1, jb2, jb3, jb4; // 按钮
@@ -39,7 +41,7 @@ public class Frame extends JFrame implements ActionListener {
   JTextPane jtp1;// 专门显示文本的文本域
   ResourceManager resourceManager = new ResourceManager();
 
-  public Frame() {
+  public LexicalGui() {
 
     // Frame初始化设置
     this.setLayout(null);

@@ -1,4 +1,4 @@
-package Lexical;
+package lexical;
 
 import java.util.Arrays;
 import java.util.HashMap;

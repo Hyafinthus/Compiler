@@ -1,4 +1,4 @@
-package Lexical;
+package lexical;
 
 public class LexicalException extends Exception {
   private static final long serialVersionUID = -1384122570340663492L;

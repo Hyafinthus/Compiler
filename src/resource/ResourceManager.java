@@ -1,8 +1,5 @@
-package GUI;
+package resource;
 
-import Lexical.Dfa;
-import Lexical.Dfa2Token;
-import Lexical.Nfa;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
@@ -10,6 +7,9 @@ import java.util.Vector;
 import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
+import lexical.Dfa;
+import lexical.Dfa2Token;
+import lexical.Nfa;
 
 public class ResourceManager {
   // 将NFA表格读入此处
