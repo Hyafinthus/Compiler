@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Vector;
+import grammatical.GrammerConverter;
 import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
@@ -154,6 +155,8 @@ public class ResourceManager {
 	    } catch (Exception e) {
 	      e.printStackTrace();
 	    }
+	    GrammerConverter gc = new GrammerConverter(LLanalysisdataTitle,LLanalysisdata);
+	    FirstFollowdata = gc.getFirstFollowData();
 		
   }
 
