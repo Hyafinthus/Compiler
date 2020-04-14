@@ -32,6 +32,19 @@ public class GrammerConverter {
     public ArrayList<String> getRightPart() {
       return rightPart;
     }
+
+    @Override
+    public String toString() {
+      String str = "";
+      str += this.leftPart;
+      str += "->";
+      for(int i=0;i<rightPart.size();i++) {
+        str += rightPart.get(i)+" ";
+      }
+      return str;
+    }
+    
+    
   }
 
   // 读取文法表格，为产生式们赋值
@@ -184,6 +197,53 @@ public class GrammerConverter {
     return result;
 
   }
-
+  
+  public Vector<Vector<String>> getSelectData(){
+    for(Production p:productions) {
+      selectMap.put(p,new HashSet<String>());
+      for(int i=0;i<p.getRightPart().size();i++) {
+        if(!nonterminals.contains(p.getRightPart().get(i))) {
+          if(!p.getRightPart().get(i).equals("ε")) {
+            selectMap.get(p).add(p.getRightPart().get(i));
+            break;
+          } else {
+            if(i == p.getRightPart().size()-1) {
+              selectMap.get(p).addAll(followMap.get(p.getLeftPart()));
+            }
+            continue;
+          }
+        } else if(!firstMap.get(p.getRightPart().get(i)).contains("ε")) {
+          selectMap.get(p).addAll(firstMap.get(p.getRightPart().get(i)));
+          break;
+        } else {
+          selectMap.get(p).addAll(firstMap.get(p.getRightPart().get(i)));
+          selectMap.get(p).remove("ε");
+          if(i == p.getRightPart().size()-1) {
+            selectMap.get(p).addAll(followMap.get(p.getLeftPart()));
+          }
+        } 
+      }
+    }
+    Vector<Vector<String>> result = new Vector<Vector<String>>();
+    for(Production p:productions) {
+      Vector<String> line = new Vector<String>();
+      line.add(p.toString());
+      
+      String selectSetStr = "{";
+      boolean isFst = true;
+      for(String select:selectMap.get(p)) {
+        if(isFst) {
+          selectSetStr += select;
+          isFst = false;
+        }else {
+          selectSetStr += ","+select;
+        }
+      }
+      selectSetStr+="}";
+      line.add(selectSetStr);
+      result.add(line);
+    }
+    return result;
+  }
 
 }

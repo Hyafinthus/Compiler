@@ -157,6 +157,7 @@ public class ResourceManager {
 	    }
 	    GrammerConverter gc = new GrammerConverter(LLanalysisdataTitle,LLanalysisdata);
 	    FirstFollowdata = gc.getFirstFollowData();
+	    Selectdata = gc.getSelectData();
 		
   }
 
