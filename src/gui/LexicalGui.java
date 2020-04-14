@@ -1,14 +1,8 @@
 package gui;
 
-import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -34,9 +28,9 @@ public class LexicalGui extends JFrame implements ActionListener {
   JPanel jp1, jp2, jp3; // 画布
   JLabel jl2; // 文本
   JTextField jtf2; // 文本框（显示）
-  JTextArea jta1, jta2, jta3, jta4; // 定义文本域
-  JScrollPane jsp1, jsp2, jsp3, jsp4;// 定义文本域对应的滚动条
-  File FA, text; // 文件
+  JTextArea jta1, jta2, jta3; // 定义文本域
+  JScrollPane jsp1, jsp2, jsp3;// 定义文本域对应的滚动条
+  File FA; // 文件
   JTable jt1, jt2, jt3; // 定义表格
   JTextPane txtjtp;
   ResourceManager resourceManager = new ResourceManager();
@@ -49,7 +43,7 @@ public class LexicalGui extends JFrame implements ActionListener {
     this.setLayout(null);
     this.setTitle("词法分析");
     this.setSize(1068, 768);
-    this.setLocation(100, 100);
+    this.setLocation(200, 100);
     
     this.setResizable(false);
 
@@ -80,7 +74,6 @@ public class LexicalGui extends JFrame implements ActionListener {
     // 画布初始化
     this.jp1 = new JPanel();
     this.jp1.setLayout(null);
-
     this.jp1.setSize(1068, 768);
     this.jp1.setLocation(0, 0);
 
@@ -244,13 +237,6 @@ public class LexicalGui extends JFrame implements ActionListener {
       this.jp2.add(jsp2);
       this.jp2.add(jsp3);
       this.setContentPane(jp2);
-    } else if (jp.equals(this.jp3)) {
-      this.jp3.add(jl2);
-      this.jp3.add(jtf2);
-      this.jp3.add(jb2);
-      this.jp3.add(jb3);
-      this.jp3.add(jb4);
-      this.setContentPane(jp3);
-    }
+    } 
   }
 }

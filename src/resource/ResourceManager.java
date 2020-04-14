@@ -29,6 +29,18 @@ public class ResourceManager {
   // 错误信息存放此处
   static public Vector<Vector<String>> Errordata = new Vector<Vector<String>>();
   static public Vector<String> ErrordataTitle = new Vector<String>(Arrays.asList("行号", "错误项", "错误原因"));
+  
+  //first,follow集存放此处
+  static public Vector<Vector<String>> FirstFollowdata = new Vector<Vector<String>>();
+  static public Vector<String> FirstFollowdataTitle = new Vector<String>(Arrays.asList("非终结符", "First集", "Follow集"));
+ 
+  //产生式,select集存放此处
+  static public Vector<Vector<String>> Selectdata = new Vector<Vector<String>>();
+  static public Vector<String> SelectdataTitle = new Vector<String>(Arrays.asList("产生式", "Select集"));
+
+  //LL分析表信息存放此处
+  static public Vector<Vector<String>> LLanalysisdata = new Vector<Vector<String>>();
+  static public Vector<String> LLanalysisdataTitle = new Vector<String>();
 
   static public void NFAexcel_reader(File excel) {
     int columnCount;

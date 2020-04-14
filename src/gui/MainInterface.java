@@ -86,7 +86,7 @@ public class MainInterface extends JFrame implements ActionListener{
 		    } else if (e.getSource().equals(jb2)) {
 		    	LexicalGui frame1 = new LexicalGui(this.jtp1);
 		    } else if (e.getSource().equals(jb3)) {
-		      
+		    	GrammaticalGui frame2 = new GrammaticalGui(this.jtp1);
 		    } else if (e.getSource().equals(jb4)) {
 		    	
 		    }
@@ -95,7 +95,7 @@ public class MainInterface extends JFrame implements ActionListener{
 
 	// 将text内容读到文本域上供修改
 	  private void readtext() {
-	    // 设置画板5
+	    // 设置画板2
 	    this.jp2 = new JPanel();
 	    this.jp2.setSize(800, 600);
 	    this.jp2.setLocation(0, 0);
