@@ -12,22 +12,25 @@ import lexical.Dfa2Token;
 import lexical.Nfa;
 
 public class ResourceManager {
+  //储存读入的txt文件
+  static public File text;
+	
   // 将NFA表格读入此处
-  private Vector<Vector<String>> NFAdata = new Vector<Vector<String>>();
+  static public Vector<Vector<String>> NFAdata = new Vector<Vector<String>>();
 
   // DFA表格读入此处或者将NFA转换到此处
-  private Vector<Vector<String>> DFAdata = new Vector<Vector<String>>();
-  private Vector<String> DFAdataTitle = new Vector<String>();
+  static public Vector<Vector<String>> DFAdata = new Vector<Vector<String>>();
+  static public Vector<String> DFAdataTitle = new Vector<String>();
 
   // Token序列写入此处
-  private Vector<Vector<String>> Tokendata = new Vector<Vector<String>>();
-  private Vector<String> TokendataTitle = new Vector<String>(Arrays.asList("行号", "单词", "Token"));
+  static public Vector<Vector<String>> Tokendata = new Vector<Vector<String>>();
+  static public Vector<String> TokendataTitle = new Vector<String>(Arrays.asList("行号", "单词", "Token"));
 
   // 错误信息存放此处
-  private Vector<Vector<String>> Errordata = new Vector<Vector<String>>();
-  private Vector<String> ErrordataTitle = new Vector<String>(Arrays.asList("行号", "错误项", "错误原因"));
+  static public Vector<Vector<String>> Errordata = new Vector<Vector<String>>();
+  static public Vector<String> ErrordataTitle = new Vector<String>(Arrays.asList("行号", "错误项", "错误原因"));
 
-  public void NFAexcel_reader(File excel) {
+  static public void NFAexcel_reader(File excel) {
     int columnCount;
     int rowCount;
     Sheet sheet;
@@ -60,10 +63,10 @@ public class ResourceManager {
       e.printStackTrace();
     }
 
-    this.NFAtoDFA();
+    NFAtoDFA();
   }
 
-  public void DFAexcel_reader(File excel) {
+  static public void DFAexcel_reader(File excel) {
     int columnCount;
     int rowCount;
     Sheet sheet;
@@ -102,50 +105,26 @@ public class ResourceManager {
     }
   }
 
-  public Vector<Vector<String>> getDFAdata() {
-    return this.DFAdata;
-  }
-
-  public Vector<String> getDFAdataTitle() {
-    return this.DFAdataTitle;
-  }
-
-  public Vector<Vector<String>> getTokendata() {
-    return this.Tokendata;
-  }
-
-  public Vector<String> getTokendataTitle() {
-    return this.TokendataTitle;
-  }
-
-  public Vector<Vector<String>> getErrordata() {
-    return this.Errordata;
-  }
-
-  public Vector<String> getErrordataTitle() {
-    return this.ErrordataTitle;
-  }
-
   // NFA转换为DFA
-  private void NFAtoDFA() {
-    Nfa nfa = new Nfa(this.NFAdata);
+  static private void NFAtoDFA() {
+    Nfa nfa = new Nfa(NFAdata);
     Dfa dfa = nfa.toDfa();
-    this.DFAdata = dfa.getDfaData();
-    this.DFAdataTitle = dfa.getDfaTitle();
+    DFAdata = dfa.getDfaData();
+    DFAdataTitle = dfa.getDfaTitle();
   }
 
   // 根据已有的DFA转换表和输入文件得出Token序列结果并存放
-  public void analysis(String text) {
+  static public void analysis(String text) {
     // 创建Dfa对象 传入DFA信息
-    Dfa dfa = new Dfa(this.getDFAdataTitle(), this.getDFAdata());
+    Dfa dfa = new Dfa(DFAdataTitle, DFAdata);
     String[] lines = text.split("\n");
 
     // 创建Lexical中对象 传入text
     try {
       Dfa2Token dfa2Token = new Dfa2Token(dfa, lines);
       dfa2Token.analysis();
-      this.Tokendata = dfa2Token.getTokenData();
-      this.Errordata = dfa2Token.getErrorData();
+      Tokendata = dfa2Token.getTokenData();
+      Errordata = dfa2Token.getErrorData();
     } catch (FileNotFoundException e1) {
       e1.printStackTrace();
     }
