@@ -2,11 +2,15 @@ package resource;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Vector;
 import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
 import lexical.Dfa;
 import lexical.Dfa2Token;
 import lexical.Nfa;
@@ -187,6 +191,10 @@ public class ResourceManager {
     Selectdata = syntaxConverter.getSelectData();
     LLanalysisdataTitle = syntaxConverter.getLLanalysisTitle();
     LLanalysisdata = syntaxConverter.getLLanalysisData();
+    
+    exportExcel(FirstFollowdataTitle, FirstFollowdata, "D:\\excel1.xls");
+    exportExcel(SelectdataTitle, Selectdata, "D:\\excel2.xls");
+    exportExcel(LLanalysisdataTitle, LLanalysisdata, "D:\\excel3.xls");
   }
 
   // NFA转换为DFA
@@ -214,5 +222,38 @@ public class ResourceManager {
       e1.printStackTrace();
       return null;
     }
+  }
+  
+  private static void exportExcel(Vector<String> dataTitle, Vector<Vector<String>> data, String targetfile) {  
+	String worksheet = "List" ; //输出的excel文件工作表名   
+	       
+	WritableWorkbook workbook;  
+	try   
+	{  
+	  OutputStream os=new  FileOutputStream(targetfile);   
+	  workbook=Workbook.createWorkbook(os);   
+	  
+	  WritableSheet sheet = workbook.createSheet(worksheet, 0);  //添加第一个工作表   
+	  
+	  jxl.write.Label label;  
+	  for (int i = 0; i<dataTitle.size(); i++) {  
+	    //Label(列号,行号 ,内容 )   
+	    label = new  jxl.write.Label(i, 0, dataTitle.get(i));  //put the title in row1    
+	    sheet.addCell(label);   
+	  }
+	  for (int i = 1; i<data.size(); i++) {
+		  Vector<String> tempData = data.get(i);
+		  for(int j = 0; j<tempData.size(); j++) {
+			  label = new  jxl.write.Label(j, i, tempData.get(j));  //put the title in row1    
+			  sheet.addCell(label);   
+		  }
+	  }
+	  
+	  workbook.write();   
+	  workbook.close();  
+	}catch (Exception e) {   
+	  e.printStackTrace();   
+	}   
+	
   }
 }

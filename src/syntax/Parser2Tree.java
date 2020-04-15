@@ -37,7 +37,7 @@ public class Parser2Tree {
         this.stack.pop();
         this.index++;
       } else if (!this.syntaxConverter.nonterminals.contains(top)) {
-        error("0 " + top);
+        error(0);
       } else {
         System.err.println(top);
         int rowIndex = this.syntaxConverter.nonterminalIndex.get(top);
@@ -48,9 +48,9 @@ public class Parser2Tree {
 
         String production = this.syntaxConverter.analysisData.get(rowIndex).get(columnIndex).trim();
         if (production.equals("synch")) {
-          error("1");
+          error(1);
         } else if (production.equals("")) {
-          error("2");
+          error(2);
         } else { // 正确
           // 存产生式
           String[] symbols = production.split(" ");
@@ -113,8 +113,16 @@ public class Parser2Tree {
     }
   }
 
-  public void error(String type) {
-    System.err.println("ERROR " + type);
-    // TODO PIPIXIA
+  public void error(int type) {
+    if (type == 0) {
+      System.err.println("ERROR:弹出栈顶终结符");
+      this.stack.pop();
+    } else if (type == 1) {
+      System.err.println("SYNCH:弹出栈顶非终结符");
+      this.stack.pop();
+    } else if (type == 2) {
+      System.err.println("恐慌模式:忽略输入符号");
+      this.index++;
+    }
   }
 }
