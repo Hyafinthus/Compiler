@@ -107,7 +107,16 @@ public class Parser2Tree {
   }
 
   public void error(int type) {
-    System.err.println("ERROR");
-    // TODO PIPIXIA
+    if(type == 0) {
+    	System.err.println("ERROR:弹出栈顶终结符");
+    	this.stack.pop();
+    }
+    else if(type == 1) {
+    	System.err.println("SYNCH:弹出栈顶非终结符");
+    	this.stack.pop();
+    }else if(type == 2) {
+    	System.err.println("恐慌模式:忽略输入符号");
+    	this.index++;
+    }
   }
 }
