@@ -3,17 +3,22 @@ package syntax;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Vector;
 
 public class SyntaxConverter {
   private ArrayList<Production> productions = new ArrayList<Production>();
   public HashSet<String> nonterminals = new HashSet<String>();
   private String start;
+
   private HashMap<String, HashSet<String>> firstMap = new HashMap<String, HashSet<String>>();
   private HashMap<String, HashSet<String>> followMap = new HashMap<String, HashSet<String>>();
   private HashMap<Production, HashSet<String>> selectMap =
       new HashMap<Production, HashSet<String>>();
-  private Vector<String> analysisTitle = new Vector<String>();
+
+  public Vector<String> analysisTitle = new Vector<String>();
+  public Vector<Vector<String>> analysisData = new Vector<Vector<String>>();
+  public Map<String, Integer> nonterminalIndex = new HashMap<>();
 
   // 内部类产生式
   private class Production {
@@ -37,8 +42,8 @@ public class SyntaxConverter {
     @Override
     public String toString() {
       String str = "";
-      str += this.leftPart;
-      str += "->";
+      // str += this.leftPart;
+      // str += "->";
       for (int i = 0; i < rightPart.size(); i++) {
         str += rightPart.get(i) + " ";
       }
@@ -258,8 +263,9 @@ public class SyntaxConverter {
   }
 
   public Vector<Vector<String>> getLLanalysisData() {
-    Vector<Vector<String>> result = new Vector<Vector<String>>();
     boolean notNull = false;
+    int index = 0;
+
     for (String nt : nonterminals) {
       Vector<String> line = new Vector<String>();
       line.add(nt);
@@ -273,17 +279,18 @@ public class SyntaxConverter {
           }
         }
         if (!notNull) {
-          if(followMap.get(nt).contains(analysisTitle.get(i))) {
+          if (followMap.get(nt).contains(analysisTitle.get(i))) {
             line.add("synch");
           } else {
             line.add("");
           }
         }
       }
-      result.add(line);
+      this.analysisData.add(line);
+      this.nonterminalIndex.put(nt, index);
+      index++;
     }
-    System.out.println("123");
-    return result;
-  }
 
+    return this.analysisData;
+  }
 }
