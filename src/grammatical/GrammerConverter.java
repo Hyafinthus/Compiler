@@ -13,6 +13,7 @@ public class GrammerConverter {
   private HashMap<String, HashSet<String>> followMap = new HashMap<String, HashSet<String>>();
   private HashMap<Production, HashSet<String>> selectMap =
       new HashMap<Production, HashSet<String>>();
+  private Vector<String> analysisTitle = new Vector<String>();
 
   // 内部类产生式
   private class Production {
@@ -241,6 +242,42 @@ public class GrammerConverter {
       }
       selectSetStr+="}";
       line.add(selectSetStr);
+      result.add(line);
+    }
+    return result;
+  }
+  
+  public Vector<String> getLLanalysisTitle(){
+    HashSet<String> titleSet = new HashSet<String>();
+    for(Production p:productions) {
+      titleSet.addAll(selectMap.get(p));
+    }
+    analysisTitle.add("");
+    for(String str:titleSet) {
+      analysisTitle.add(str);
+    }
+    return analysisTitle;
+  }
+  
+  public Vector<Vector<String>> getLLanalysisData(){
+    Vector<Vector<String>> result = new Vector<Vector<String>>();
+    boolean notNull = false;
+    for(String nt:nonterminals) {
+      Vector<String> line = new Vector<String>();
+      line.add(nt);
+      for(int i=1;i<analysisTitle.size();i++) {
+        notNull = false;
+        for(Production p:productions) {
+          if(p.getLeftPart().equals(nt)&&selectMap.get(p).contains(analysisTitle.get(i))) {
+            line.add(p.toString());
+            notNull = true;
+            break;
+          }
+        }
+        if(!notNull) {
+          line.add("");
+        }
+      }
       result.add(line);
     }
     return result;
