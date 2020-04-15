@@ -273,7 +273,11 @@ public class SyntaxConverter {
           }
         }
         if (!notNull) {
-          line.add("");
+          if(followMap.get(nt).contains(analysisTitle.get(i))) {
+            line.add("synch");
+          } else {
+            line.add("");
+          }
         }
       }
       result.add(line);
