@@ -151,6 +151,16 @@ public class SyntaxConverter {
                       followMap.get(nt).addAll(followSet);
                       isDoneFollow = false;
                     }
+                    if(i == p.getRightPart().size()-2 && firstMap.get(p.getRightPart().get(i + 1)).contains("ε")) {
+                      if (!followMap.get(nt).containsAll(followMap.get(p.getLeftPart()))) {
+                        System.out.println(5);
+                        System.out.println(followMap.get(nt));
+                        System.out.println(followMap.get(p.getLeftPart()));
+
+                        followMap.get(nt).addAll(followMap.get(p.getLeftPart()));
+                        isDoneFollow = false;
+                      }
+                    }
                   }
                   if (!firstMap.get(p.getRightPart().get(i + 1)).contains("ε")) {
                     break;
