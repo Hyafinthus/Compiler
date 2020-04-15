@@ -86,7 +86,7 @@ public class MainInterface extends JFrame implements ActionListener{
 		    } else if (e.getSource().equals(jb2)) {
 		    	LexicalGui frame1 = new LexicalGui(this.jtp1);
 		    } else if (e.getSource().equals(jb3)) {
-		    	GrammaticalGui frame2 = new GrammaticalGui(this.jtp1);
+		    	SyntaxGui frame2 = new SyntaxGui(this.jtp1);
 		    } else if (e.getSource().equals(jb4)) {
 		    	
 		    }

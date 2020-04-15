@@ -101,12 +101,16 @@ public class Dfa2Token {
       }
 
       pending = new StringBuilder();
-      words.add(word);
 
-      String token = "< " + specie + ", " + attr + " >";
-      tokens.add(token);
+      if (!specie.equals("CMT")) { // 跳过注释
+        words.add(word);
 
-      tokenIndexs.add(String.valueOf(lineIndex + 1));
+        // String token = "< " + specie + ", " + attr + " >";
+        // tokens.add(token);
+        tokens.add(specie);
+
+        tokenIndexs.add(String.valueOf(lineIndex + 1));
+      }
 
       state = 0;
     } else { // 非终结状态

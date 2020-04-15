@@ -1,13 +1,13 @@
-package grammatical;
+package syntax;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Vector;
 
-public class GrammerConverter {
+public class SyntaxConverter {
   private ArrayList<Production> productions = new ArrayList<Production>();
-  private HashSet<String> nonterminals = new HashSet<String>();
+  public HashSet<String> nonterminals = new HashSet<String>();
   private String start;
   private HashMap<String, HashSet<String>> firstMap = new HashMap<String, HashSet<String>>();
   private HashMap<String, HashSet<String>> followMap = new HashMap<String, HashSet<String>>();
@@ -39,17 +39,15 @@ public class GrammerConverter {
       String str = "";
       str += this.leftPart;
       str += "->";
-      for(int i=0;i<rightPart.size();i++) {
-        str += rightPart.get(i)+" ";
+      for (int i = 0; i < rightPart.size(); i++) {
+        str += rightPart.get(i) + " ";
       }
       return str;
     }
-    
-    
   }
 
   // 读取文法表格，为产生式们赋值
-  public GrammerConverter(Vector<String> xlsTitle, Vector<Vector<String>> xlsData) {
+  public SyntaxConverter(Vector<String> xlsTitle, Vector<Vector<String>> xlsData) {
     ArrayList<String> rightPart = new ArrayList<String>();
     nonterminals.add(xlsTitle.get(0));
     start = xlsTitle.get(0);
@@ -112,7 +110,7 @@ public class GrammerConverter {
           System.out.println(1);
           System.out.println(followMap.get(nt));
           System.out.println("$");
-          
+
           followMap.get(nt).add("$");
           isDoneFollow = false;
         }
@@ -125,7 +123,7 @@ public class GrammerConverter {
                   System.out.println(2);
                   System.out.println(followMap.get(nt));
                   System.out.println(followMap.get(p.getLeftPart()));
-                  
+
                   followMap.get(nt).addAll(followMap.get(p.getLeftPart()));
                   isDoneFollow = false;
                 }
@@ -136,7 +134,7 @@ public class GrammerConverter {
                       System.out.println(3);
                       System.out.println(followMap.get(nt));
                       System.out.println(p.getRightPart().get(i + 1));
-                      
+
                       followMap.get(nt).add(p.getRightPart().get(i + 1));
                       isDoneFollow = false;
                     }
@@ -149,7 +147,7 @@ public class GrammerConverter {
                       System.out.println(4);
                       System.out.println(followMap.get(nt));
                       System.out.println(followSet);
-                      
+
                       followMap.get(nt).addAll(followSet);
                       isDoneFollow = false;
                     }
@@ -165,121 +163,122 @@ public class GrammerConverter {
       }
     }
     Vector<Vector<String>> result = new Vector<Vector<String>>();
-    for(String nt:nonterminals) {
+    for (String nt : nonterminals) {
       Vector<String> line = new Vector<String>();
       line.add(nt);
       String firstSetStr = "{";
       boolean isFst = true;
-      for(String first:firstMap.get(nt)) {
-        if(isFst) {
+      for (String first : firstMap.get(nt)) {
+        if (isFst) {
           firstSetStr += first;
           isFst = false;
-        }else {
-          firstSetStr += ","+first;
+        } else {
+          firstSetStr += "," + first;
         }
       }
-      firstSetStr+="}";
+      firstSetStr += "}";
       line.add(firstSetStr);
-      
+
       String followSetStr = "{";
       isFst = true;
-      for(String follow:followMap.get(nt)) {
-        if(isFst) {
+      for (String follow : followMap.get(nt)) {
+        if (isFst) {
           followSetStr += follow;
           isFst = false;
-        }else {
-          followSetStr += ","+follow;
+        } else {
+          followSetStr += "," + follow;
         }
       }
-      followSetStr+="}";
+      followSetStr += "}";
       line.add(followSetStr);
       result.add(line);
     }
     return result;
 
   }
-  
-  public Vector<Vector<String>> getSelectData(){
-    for(Production p:productions) {
-      selectMap.put(p,new HashSet<String>());
-      for(int i=0;i<p.getRightPart().size();i++) {
-        if(!nonterminals.contains(p.getRightPart().get(i))) {
-          if(!p.getRightPart().get(i).equals("ε")) {
+
+  public Vector<Vector<String>> getSelectData() {
+    for (Production p : productions) {
+      selectMap.put(p, new HashSet<String>());
+      for (int i = 0; i < p.getRightPart().size(); i++) {
+        if (!nonterminals.contains(p.getRightPart().get(i))) {
+          if (!p.getRightPart().get(i).equals("ε")) {
             selectMap.get(p).add(p.getRightPart().get(i));
             break;
           } else {
-            if(i == p.getRightPart().size()-1) {
+            if (i == p.getRightPart().size() - 1) {
               selectMap.get(p).addAll(followMap.get(p.getLeftPart()));
             }
             continue;
           }
-        } else if(!firstMap.get(p.getRightPart().get(i)).contains("ε")) {
+        } else if (!firstMap.get(p.getRightPart().get(i)).contains("ε")) {
           selectMap.get(p).addAll(firstMap.get(p.getRightPart().get(i)));
           break;
         } else {
           selectMap.get(p).addAll(firstMap.get(p.getRightPart().get(i)));
           selectMap.get(p).remove("ε");
-          if(i == p.getRightPart().size()-1) {
+          if (i == p.getRightPart().size() - 1) {
             selectMap.get(p).addAll(followMap.get(p.getLeftPart()));
           }
-        } 
+        }
       }
     }
     Vector<Vector<String>> result = new Vector<Vector<String>>();
-    for(Production p:productions) {
+    for (Production p : productions) {
       Vector<String> line = new Vector<String>();
       line.add(p.toString());
-      
+
       String selectSetStr = "{";
       boolean isFst = true;
-      for(String select:selectMap.get(p)) {
-        if(isFst) {
+      for (String select : selectMap.get(p)) {
+        if (isFst) {
           selectSetStr += select;
           isFst = false;
-        }else {
-          selectSetStr += ","+select;
+        } else {
+          selectSetStr += "," + select;
         }
       }
-      selectSetStr+="}";
+      selectSetStr += "}";
       line.add(selectSetStr);
       result.add(line);
     }
     return result;
   }
-  
-  public Vector<String> getLLanalysisTitle(){
+
+  public Vector<String> getLLanalysisTitle() {
     HashSet<String> titleSet = new HashSet<String>();
-    for(Production p:productions) {
+    for (Production p : productions) {
       titleSet.addAll(selectMap.get(p));
     }
     analysisTitle.add("");
-    for(String str:titleSet) {
+    for (String str : titleSet) {
       analysisTitle.add(str);
     }
     return analysisTitle;
   }
-  
-  public Vector<Vector<String>> getLLanalysisData(){
+
+  public Vector<Vector<String>> getLLanalysisData() {
     Vector<Vector<String>> result = new Vector<Vector<String>>();
     boolean notNull = false;
-    for(String nt:nonterminals) {
+    for (String nt : nonterminals) {
       Vector<String> line = new Vector<String>();
       line.add(nt);
-      for(int i=1;i<analysisTitle.size();i++) {
+      for (int i = 1; i < analysisTitle.size(); i++) {
         notNull = false;
-        for(Production p:productions) {
-          if(p.getLeftPart().equals(nt)&&selectMap.get(p).contains(analysisTitle.get(i))) {
+        for (Production p : productions) {
+          if (p.getLeftPart().equals(nt) && selectMap.get(p).contains(analysisTitle.get(i))) {
             line.add(p.toString());
             notNull = true;
             break;
           }
         }
-        if(!notNull) {
+        if (!notNull) {
           line.add("");
         }
       }
       result.add(line);
     }
+    System.out.println("123");
     return result;
   }
 

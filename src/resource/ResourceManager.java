@@ -4,46 +4,53 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Vector;
-import grammatical.GrammerConverter;
 import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
 import lexical.Dfa;
 import lexical.Dfa2Token;
 import lexical.Nfa;
+import syntax.Parser2Tree;
+import syntax.SyntaxConverter;
 
 public class ResourceManager {
-  //储存读入的txt文件
-  static public File text;
-	
-  // 将NFA表格读入此处
-  static public Vector<Vector<String>> NFAdata = new Vector<Vector<String>>();
+  // 储存读入的txt文件
+  public static File text;
+
+  // NFA表格读入此处
+  public static Vector<Vector<String>> NFAdata = new Vector<Vector<String>>();
 
   // DFA表格读入此处或者将NFA转换到此处
-  static public Vector<Vector<String>> DFAdata = new Vector<Vector<String>>();
-  static public Vector<String> DFAdataTitle = new Vector<String>();
+  public static Vector<Vector<String>> DFAdata = new Vector<Vector<String>>();
+  public static Vector<String> DFAdataTitle = new Vector<String>();
 
   // Token序列写入此处
-  static public Vector<Vector<String>> Tokendata = new Vector<Vector<String>>();
-  static public Vector<String> TokendataTitle = new Vector<String>(Arrays.asList("行号", "单词", "Token"));
+  public static Vector<Vector<String>> Tokendata = new Vector<Vector<String>>();
+  public static Vector<String> TokendataTitle =
+      new Vector<String>(Arrays.asList("行号", "单词", "Token"));
 
   // 错误信息存放此处
-  static public Vector<Vector<String>> Errordata = new Vector<Vector<String>>();
-  static public Vector<String> ErrordataTitle = new Vector<String>(Arrays.asList("行号", "错误项", "错误原因"));
-  
-  //first,follow集存放此处
-  static public Vector<Vector<String>> FirstFollowdata = new Vector<Vector<String>>();
-  static public Vector<String> FirstFollowdataTitle = new Vector<String>(Arrays.asList("非终结符", "First集", "Follow集"));
- 
-  //产生式,select集存放此处
-  static public Vector<Vector<String>> Selectdata = new Vector<Vector<String>>();
-  static public Vector<String> SelectdataTitle = new Vector<String>(Arrays.asList("产生式", "Select集"));
+  public static Vector<Vector<String>> Errordata = new Vector<Vector<String>>();
+  public static Vector<String> ErrordataTitle =
+      new Vector<String>(Arrays.asList("行号", "错误项", "错误原因"));
 
-  //LL分析表信息存放此处
-  static public Vector<Vector<String>> LLanalysisdata = new Vector<Vector<String>>();
-  static public Vector<String> LLanalysisdataTitle = new Vector<String>();
+  // first,follow集存放此处
+  public static Vector<Vector<String>> FirstFollowdata = new Vector<Vector<String>>();
+  public static Vector<String> FirstFollowdataTitle =
+      new Vector<String>(Arrays.asList("非终结符", "First集", "Follow集"));
 
-  static public void NFAexcel_reader(File excel) {
+  // 产生式,select集存放此处
+  public static Vector<Vector<String>> Selectdata = new Vector<Vector<String>>();
+  public static Vector<String> SelectdataTitle =
+      new Vector<String>(Arrays.asList("产生式", "Select集"));
+
+  // LL分析表信息存放此处
+  public static Vector<Vector<String>> LLanalysisdata = new Vector<Vector<String>>();
+  public static Vector<String> LLanalysisdataTitle = new Vector<String>();
+
+  private static SyntaxConverter syntaxConverter;
+
+  public static void NFAexcel_reader(File excel) {
     int columnCount;
     int rowCount;
     Sheet sheet;
@@ -76,10 +83,10 @@ public class ResourceManager {
       e.printStackTrace();
     }
 
-    NFAtoDFA();
+    NFA2DFA();
   }
 
-  static public void DFAexcel_reader(File excel) {
+  public static void DFAexcel_reader(File excel) {
     int columnCount;
     int rowCount;
     Sheet sheet;
@@ -117,54 +124,73 @@ public class ResourceManager {
       e.printStackTrace();
     }
   }
-  
+
   public static void LLexcel_reader(File excel) {
-	  int columnCount;
-	    int rowCount;
-	    Sheet sheet;
-	    Workbook book;
-	    Cell cell;
-	    LLanalysisdata = new Vector<Vector<String>>();
-	    LLanalysisdataTitle = new Vector<String>();
-	    try {
-	      book = Workbook.getWorkbook(excel);
+    int columnCount;
+    int rowCount;
+    Sheet sheet;
+    Workbook book;
+    Cell cell;
+    LLanalysisdata = new Vector<Vector<String>>();
+    LLanalysisdataTitle = new Vector<String>();
+    try {
+      book = Workbook.getWorkbook(excel);
 
-	      // 获得第一个工作表对象(excel中sheet的编号从0开始,0,1,2,3,....)
-	      sheet = book.getSheet(0);
+      // 获得第一个工作表对象(excel中sheet的编号从0开始,0,1,2,3,....)
+      sheet = book.getSheet(0);
 
-	      // 获取行数与列数
-	      columnCount = sheet.getColumns();
-	      rowCount = sheet.getRows();
+      // 获取行数与列数
+      columnCount = sheet.getColumns();
+      rowCount = sheet.getRows();
 
-	      // 得到DFAdataTitle
-	      for (int i = 0; i < columnCount; i++) {
-	        cell = sheet.getCell(i, 0);
-	        LLanalysisdataTitle.add(cell.getContents());
-	      }
+      // 得到DFAdataTitle
+      for (int i = 0; i < columnCount; i++) {
+        cell = sheet.getCell(i, 0);
+        LLanalysisdataTitle.add(cell.getContents());
+      }
 
-	      for (int j = 1; j < rowCount; j++) {
-	        Vector<String> tempRow = new Vector<String>();
-	        // 循环读取
-	        for (int k = 0; k < columnCount; k++) {
-	          cell = sheet.getCell(k, j);
-	          tempRow.add(cell.getContents());
-	        }
-	        LLanalysisdata.add(tempRow);
-	      }
-	      book.close();
-	    } catch (Exception e) {
-	      e.printStackTrace();
-	    }
-	    GrammerConverter gc = new GrammerConverter(LLanalysisdataTitle,LLanalysisdata);
-	    FirstFollowdata = gc.getFirstFollowData();
-	    Selectdata = gc.getSelectData();
-	    LLanalysisdataTitle = gc.getLLanalysisTitle();
-	    LLanalysisdata = gc.getLLanalysisData();
-		
+      for (int j = 1; j < rowCount; j++) {
+        Vector<String> tempRow = new Vector<String>();
+        // 循环读取
+        for (int k = 0; k < columnCount; k++) {
+          cell = sheet.getCell(k, j);
+          tempRow.add(cell.getContents());
+        }
+        LLanalysisdata.add(tempRow);
+      }
+      book.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    syntaxConvert();
+  }
+
+  private static Vector<Vector<String>> autoLexical(String text) {
+    String dfaPath = System.getProperty("user.dir") + "\\res\\DFA.xls";
+    File dfaXls = new File(dfaPath);
+    DFAexcel_reader(dfaXls);
+    return lexicalAnalysis(text);
+  }
+
+  // 根据已有的Parser预测分析表和代码文件得出语法树并存放
+  public static void syntaxAnalysis(String text) {
+    Vector<Vector<String>> tokenData = autoLexical(text);
+    Parser2Tree p2t = new Parser2Tree(syntaxConverter, tokenData);
+    p2t.analysis();
+  }
+
+  // Syntax转为Parser
+  public static void syntaxConvert() {
+    syntaxConverter = new SyntaxConverter(LLanalysisdataTitle, LLanalysisdata);
+    FirstFollowdata = syntaxConverter.getFirstFollowData();
+    Selectdata = syntaxConverter.getSelectData();
+    LLanalysisdataTitle = syntaxConverter.getLLanalysisTitle();
+    LLanalysisdata = syntaxConverter.getLLanalysisData();
   }
 
   // NFA转换为DFA
-  static private void NFAtoDFA() {
+  private static void NFA2DFA() {
     Nfa nfa = new Nfa(NFAdata);
     Dfa dfa = nfa.toDfa();
     DFAdata = dfa.getDfaData();
@@ -172,7 +198,7 @@ public class ResourceManager {
   }
 
   // 根据已有的DFA转换表和输入文件得出Token序列结果并存放
-  static public void analysis(String text) {
+  public static Vector<Vector<String>> lexicalAnalysis(String text) {
     // 创建Dfa对象 传入DFA信息
     Dfa dfa = new Dfa(DFAdataTitle, DFAdata);
     String[] lines = text.split("\n");
@@ -183,10 +209,10 @@ public class ResourceManager {
       dfa2Token.analysis();
       Tokendata = dfa2Token.getTokenData();
       Errordata = dfa2Token.getErrorData();
+      return dfa2Token.getTokenData();
     } catch (FileNotFoundException e1) {
       e1.printStackTrace();
+      return null;
     }
   }
-
-
 }

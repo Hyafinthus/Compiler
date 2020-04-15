@@ -101,7 +101,7 @@ public class LexicalGui extends JFrame implements ActionListener {
     } else if (e.getSource().equals(jb3)) {
       // 读取excel文件到资源管理器中
       ResourceManager.NFAexcel_reader(FA);
-      ResourceManager.analysis(this.txtjtp.getText());
+      ResourceManager.lexicalAnalysis(this.txtjtp.getText());
 
       // DFA转换表显示界面设置
       this.jt1 = new JTable(ResourceManager.DFAdata, ResourceManager.DFAdataTitle);
@@ -137,7 +137,7 @@ public class LexicalGui extends JFrame implements ActionListener {
     } else if (e.getSource().equals(jb4)) {
       // 读取excel文件到资源管理器中
       ResourceManager.DFAexcel_reader(FA);
-      ResourceManager.analysis(this.txtjtp.getText());
+      ResourceManager.lexicalAnalysis(this.txtjtp.getText());
 
       // DFA转换表显示界面设置
       this.jt1 = new JTable(ResourceManager.DFAdata, ResourceManager.DFAdataTitle);
