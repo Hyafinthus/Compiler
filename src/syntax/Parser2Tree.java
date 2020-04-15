@@ -37,16 +37,20 @@ public class Parser2Tree {
         this.stack.pop();
         this.index++;
       } else if (!this.syntaxConverter.nonterminals.contains(top)) {
-        error(0);
+        error("0 " + top);
       } else {
+        System.err.println(top);
         int rowIndex = this.syntaxConverter.nonterminalIndex.get(top);
+        System.err.println(rowIndex);
+        System.err.println(token);
         int columnIndex = this.syntaxConverter.analysisTitle.indexOf(token);
+        System.err.println(columnIndex);
 
         String production = this.syntaxConverter.analysisData.get(rowIndex).get(columnIndex).trim();
         if (production.equals("synch")) {
-          error(1);
+          error("1");
         } else if (production.equals("")) {
-          error(2);
+          error("2");
         } else { // 正确
           // 存产生式
           String[] symbols = production.split(" ");
@@ -70,13 +74,16 @@ public class Parser2Tree {
           // 弹栈
           this.stack.pop();
           // 压栈
-          for (int i = symbols.length - 1; i >= 0; i--) {
-            this.stack.push(symbols[i]);
+          if (!production.equals("ε")) {
+            for (int i = symbols.length - 1; i >= 0; i--) {
+              this.stack.push(symbols[i]);
+            }
           }
         }
       }
       top = this.stack.peek();
     }
+    System.out.println("分析完成");
   }
 
   // 指针指向下一个可扩展节点
@@ -106,8 +113,8 @@ public class Parser2Tree {
     }
   }
 
-  public void error(int type) {
-    System.err.println("ERROR");
+  public void error(String type) {
+    System.err.println("ERROR " + type);
     // TODO PIPIXIA
   }
 }
