@@ -45,10 +45,10 @@ public class Parser2Tree {
       } else {
         System.err.println(top);
         int rowIndex = this.syntaxConverter.nonterminalIndex.get(top);
-        System.err.println(rowIndex);
+        // System.err.println(rowIndex);
         System.err.println(token);
         int columnIndex = this.syntaxConverter.analysisTitle.indexOf(token);
-        System.err.println(columnIndex);
+        // System.err.println(columnIndex);
 
         String production = this.syntaxConverter.analysisData.get(rowIndex).get(columnIndex).trim();
         if (production.equals("synch")) {
@@ -137,8 +137,8 @@ public class Parser2Tree {
       this.index++;
     }
   }
-  
+
   public Node getRoot() {
-	  return this.root;
+    return this.root;
   }
 }

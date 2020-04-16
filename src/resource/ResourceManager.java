@@ -53,9 +53,9 @@ public class ResourceManager {
   public static Vector<Vector<String>> LLanalysisdata = new Vector<Vector<String>>();
   public static Vector<String> LLanalysisdataTitle = new Vector<String>();
 
-  //存储语法分析树结构根节点
+  // 存储语法分析树结构根节点
   public static Node treeRoot;
-  
+
   private static SyntaxConverter syntaxConverter;
 
   public static void NFAexcel_reader(File excel) {
