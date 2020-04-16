@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Node {
-  public String data;
+  public String data; // 非终结符 终结符token
+  public String word; // 终结符word 用于输出
   // 是终结符
   public boolean terminal;
 

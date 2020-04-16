@@ -102,15 +102,19 @@ public class Parser2Tree {
     traverse(this.root);
   }
 
-  private void traverse(Node parrent) {
-    if (!parrent.generated) {
+  private boolean traverse(Node parrent) {
+    if (!parrent.terminal && !parrent.generated) {
       this.pointer = parrent;
-      return;
+      return true;
     }
 
     for (Node node : parrent.children) {
-      traverse(node);
+      if (traverse(node)) {
+        return true;
+      }
     }
+
+    return false;
   }
 
   public void error(int type) {
