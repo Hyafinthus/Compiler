@@ -129,4 +129,8 @@ public class Parser2Tree {
       this.index++;
     }
   }
+  
+  public Node getRoot() {
+	  return this.root;
+  }
 }

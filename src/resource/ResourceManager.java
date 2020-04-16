@@ -14,6 +14,7 @@ import jxl.write.WritableWorkbook;
 import lexical.Dfa;
 import lexical.Dfa2Token;
 import lexical.Nfa;
+import syntax.Node;
 import syntax.Parser2Tree;
 import syntax.SyntaxConverter;
 
@@ -52,6 +53,9 @@ public class ResourceManager {
   public static Vector<Vector<String>> LLanalysisdata = new Vector<Vector<String>>();
   public static Vector<String> LLanalysisdataTitle = new Vector<String>();
 
+  //存储语法分析树结构根节点
+  public static Node treeRoot;
+  
   private static SyntaxConverter syntaxConverter;
 
   public static void NFAexcel_reader(File excel) {
@@ -185,6 +189,7 @@ public class ResourceManager {
     Vector<Vector<String>> tokenData = autoLexical(text);
     Parser2Tree p2t = new Parser2Tree(syntaxConverter, tokenData);
     p2t.analysis();
+    treeRoot = p2t.getRoot();
   }
 
   // Syntax转为Parser
