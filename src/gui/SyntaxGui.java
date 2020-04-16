@@ -42,7 +42,7 @@ public class SyntaxGui extends JFrame implements ActionListener {
     this.setLayout(null);
     this.setTitle("语法分析");
     this.setSize(1068, 768);
-    this.setLocation(200, 100);
+    this.setLocation(150, 150);
 
     this.setResizable(false);
     this.setVisible(true);
@@ -99,6 +99,7 @@ public class SyntaxGui extends JFrame implements ActionListener {
     } else if (e.getSource().equals(jb2)) {
       // TODO
       ResourceManager.syntaxAnalysis(this.txtjtp.getText());
+      SyntaxResultGui syntaxResultGui = new SyntaxResultGui();
     }
   }
 
@@ -159,30 +160,15 @@ public class SyntaxGui extends JFrame implements ActionListener {
     // 对每个列设置宽度
     for (int i = 0; i < cm.getColumnCount(); i++) {
       TableColumn column = cm.getColumn(i);
-      if (table.equals(jt2)) {
-        if (i == 2) {
-          column.setPreferredWidth(120);
-          column.setMaxWidth(150);
-          column.setMinWidth(60);
-        } else {
-          column.setPreferredWidth(80);
-          column.setMaxWidth(150);
-          column.setMinWidth(60);
-        }
-      } else if (table.equals(jt3)) {
-        if (i == 2) {
-          column.setPreferredWidth(160);
-          column.setMaxWidth(150);
-          column.setMinWidth(60);
-        } else {
-          column.setPreferredWidth(85);
-          column.setMaxWidth(150);
-          column.setMinWidth(60);
-        }
+      if (table.equals(jt1)) {
+    	column.setPreferredWidth(100);
+        column.setMinWidth(100);
+      } else if (table.equals(jt2)) {
+    	column.setPreferredWidth(150);
+        column.setMinWidth(150);
       } else {
         column.setPreferredWidth(60);
-        column.setMaxWidth(100);
-        column.setMinWidth(50);
+        column.setMinWidth(60);
       }
     }
 
