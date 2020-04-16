@@ -214,19 +214,23 @@ public class SyntaxConverter {
   }
   
   public boolean checkConflict() {
+    boolean result = true;
     for (Production p1 : productions) {
       for (Production p2 : productions) {
         if(p1.leftPart.equals(p2.leftPart) && !p1.getRightPart().equals(p2.getRightPart())) {
           for(String sig:selectMap.get(p2)) {
             if(selectMap.get(p1).contains(sig))
             {
-              return false;
+              System.out.println("冲突式子：");
+              System.out.println(p1.getLeftPart()+"->"+p1);
+              System.out.println(p2.getLeftPart()+"->"+p2);
+              result =  false;
             }
           }
         }
       }
     }
-    return true;
+    return result;
     
   }
 
@@ -256,21 +260,8 @@ public class SyntaxConverter {
         }
       }
     }
-    
-    for (Production p1 : productions) {
-      for (Production p2 : productions) {
-        if(p1.leftPart.equals(p2.leftPart) && !p1.getRightPart().equals(p2.getRightPart())) {
-          for(String sig:selectMap.get(p2)) {
-            if(selectMap.get(p1).contains(sig))
-            {
-              System.out.println("出现冲突");
-              System.out.println(p1.getLeftPart()+"->"+p1);
-              System.out.println(p2.getLeftPart()+"->"+p2);
-            }
-          }
-        }
-      }
-    }
+    //检测冲突
+    checkConflict();
     
     Vector<Vector<String>> result = new Vector<Vector<String>>();
     for (Production p : productions) {
