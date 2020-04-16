@@ -1,5 +1,7 @@
 package syntax;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -7,8 +9,8 @@ public class Parser2Tree {
   // 预测分析表
   private SyntaxConverter syntaxConverter;
 
-  // 栈
-  private Stack<String> stack = new Stack<>();
+  // Node栈
+  private Stack<Node> stack = new Stack<>();
 
   // 输入Token
   private Vector<Vector<String>> tokenData;
@@ -22,25 +24,31 @@ public class Parser2Tree {
     this.syntaxConverter = syntaxConverter;
     this.tokenData = tokenData;
 
-    this.stack.push("$");
-    this.stack.push("Program");
-
     this.root = new Node("Program", false);
     this.pointer = this.root;
+
+    Node end = new Node("$", false);
+    this.stack.push(end);
+    this.stack.push(this.root);
   }
 
   public void analysis() {
-    String top = this.stack.peek();
+    String top = this.stack.peek().data;
     while (!top.equals("$")) {
       String token = this.tokenData.get(index).get(2);
-      if (top.equals(token)) {
-        this.stack.pop();
+      if (top.equals(token)) { // 栈顶终结符与输入相同
+        Node terminal = this.stack.pop();
+        terminal.setWord(this.tokenData.get(index).get(1)); // 为终结符赋值
         this.index++;
       } else if (!this.syntaxConverter.nonterminals.contains(top)) {
         error(0);
       } else {
+        System.err.println(top);
         int rowIndex = this.syntaxConverter.nonterminalIndex.get(top);
+        System.err.println(rowIndex);
+        System.err.println(token);
         int columnIndex = this.syntaxConverter.analysisTitle.indexOf(token);
+        System.err.println(columnIndex);
 
         String production = this.syntaxConverter.analysisData.get(rowIndex).get(columnIndex).trim();
         if (production.equals("synch")) {
@@ -50,6 +58,8 @@ public class Parser2Tree {
         } else { // 正确
           // 存产生式
           String[] symbols = production.split(" ");
+          // 存该生成式扩展的Node
+          List<Node> temp = new ArrayList<>();
 
           // 存树
           for (String symbol : symbols) {
@@ -61,7 +71,9 @@ public class Parser2Tree {
             }
             this.pointer.children.add(node);
             node.parrent = this.pointer;
+            temp.add(node);
           }
+
           // 已扩展
           this.pointer.generated = true;
           // 改变指针
@@ -70,13 +82,16 @@ public class Parser2Tree {
           // 弹栈
           this.stack.pop();
           // 压栈
-          for (int i = symbols.length - 1; i >= 0; i--) {
-            this.stack.push(symbols[i]);
+          if (!production.equals("ε")) {
+            for (int i = temp.size() - 1; i >= 0; i--) {
+              this.stack.push(temp.get(i));
+            }
           }
         }
       }
-      top = this.stack.peek();
+      top = this.stack.peek().data;
     }
+    System.out.println("分析完成");
   }
 
   // 指针指向下一个可扩展节点
@@ -95,28 +110,35 @@ public class Parser2Tree {
     traverse(this.root);
   }
 
-  private void traverse(Node parrent) {
-    if (!parrent.generated) {
+  private boolean traverse(Node parrent) {
+    if (!parrent.terminal && !parrent.generated) {
       this.pointer = parrent;
-      return;
+      return true;
     }
 
     for (Node node : parrent.children) {
-      traverse(node);
+      if (traverse(node)) {
+        return true;
+      }
     }
+
+    return false;
   }
 
   public void error(int type) {
-    if(type == 0) {
-    	System.err.println("ERROR:弹出栈顶终结符");
-    	this.stack.pop();
+    if (type == 0) {
+      System.err.println("ERROR:弹出栈顶终结符");
+      this.stack.pop();
+    } else if (type == 1) {
+      System.err.println("SYNCH:弹出栈顶非终结符");
+      this.stack.pop();
+    } else if (type == 2) {
+      System.err.println("恐慌模式:忽略输入符号");
+      this.index++;
     }
-    else if(type == 1) {
-    	System.err.println("SYNCH:弹出栈顶非终结符");
-    	this.stack.pop();
-    }else if(type == 2) {
-    	System.err.println("恐慌模式:忽略输入符号");
-    	this.index++;
-    }
+  }
+  
+  public Node getRoot() {
+	  return this.root;
   }
 }

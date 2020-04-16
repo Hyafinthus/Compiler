@@ -156,7 +156,8 @@ public class SyntaxConverter {
                       followMap.get(nt).addAll(followSet);
                       isDoneFollow = false;
                     }
-                    if(i == p.getRightPart().size()-2 && firstMap.get(p.getRightPart().get(i + 1)).contains("ε")) {
+                    if (i == p.getRightPart().size() - 2
+                        && firstMap.get(p.getRightPart().get(i + 1)).contains("ε")) {
                       if (!followMap.get(nt).containsAll(followMap.get(p.getLeftPart()))) {
 //                        System.out.println(5);
 //                        System.out.println(followMap.get(nt));
@@ -274,7 +275,7 @@ public class SyntaxConverter {
     Vector<Vector<String>> result = new Vector<Vector<String>>();
     for (Production p : productions) {
       Vector<String> line = new Vector<String>();
-      line.add(p.toString());
+      line.add(p.leftPart + "->" + p.toString());
 
       String selectSetStr = "{";
       boolean isFst = true;
@@ -334,6 +335,7 @@ public class SyntaxConverter {
       index++;
     }
 
+    System.out.println("123");
     return this.analysisData;
   }
 }
