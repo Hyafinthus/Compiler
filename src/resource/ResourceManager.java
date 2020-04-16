@@ -53,6 +53,11 @@ public class ResourceManager {
   public static Vector<Vector<String>> LLanalysisdata = new Vector<Vector<String>>();
   public static Vector<String> LLanalysisdataTitle = new Vector<String>();
 
+  // 语法分析错误存放此处
+  public static Vector<Vector<String>> SyntaxErrordata = new Vector<Vector<String>>();
+  public static Vector<String> SyntaxErrordataTitle = 
+		  new Vector<String>(Arrays.asList("行号", "错误信息"));
+  
   // 存储语法分析树结构根节点
   public static Node treeRoot;
 
@@ -190,6 +195,7 @@ public class ResourceManager {
     Parser2Tree p2t = new Parser2Tree(syntaxConverter, tokenData);
     p2t.analysis();
     treeRoot = p2t.getRoot();
+    SyntaxErrordata = p2t.getErrorData();
   }
 
   // Syntax转为Parser

@@ -15,9 +15,9 @@ public class SyntaxResultGui extends JFrame {
 
   private static final long serialVersionUID = -2760753019517809093L;
 
-  JTextArea jta1; // 定义文本域
+  JTextArea jta2; // 定义文本域
   JScrollPane jsp1, jsp2;// 定义文本域对应的滚动条
-  JTable jt1;// 错误信息表格
+  JTable jt2;// 错误信息表格
   JTree jTree;
 
   DefaultTreeModel newModel;
@@ -41,6 +41,13 @@ public class SyntaxResultGui extends JFrame {
     this.jsp1 = new JScrollPane(jTree);
     this.jsp1.setBounds(30, 30, 500, 700);
     this.add(jsp1);
+    
+    this.jt2 = new JTable(ResourceManager.SyntaxErrordata, ResourceManager.SyntaxErrordataTitle);
+    this.jta2 = new JTextArea();
+    this.jsp2 = new JScrollPane(jta2);
+    this.jsp2.setBounds(550, 30, 500, 700);
+    this.jsp2.setViewportView(jt2);
+    this.add(jsp2);
   }
 
   private DefaultMutableTreeNode traverseTree(Node node) {

@@ -16,6 +16,9 @@ public class Parser2Tree {
   private Vector<Vector<String>> tokenData;
   private int index = 0;
 
+  // 错误信息
+  private Vector<Vector<String>> errorData = new Vector<Vector<String>>();
+  
   // 输出Tree
   private Node root;
   private Node pointer;
@@ -126,19 +129,32 @@ public class Parser2Tree {
   }
 
   public void error(int type) {
-    if (type == 0) {
-      System.err.println("ERROR:弹出栈顶终结符");
-      this.stack.pop();
-    } else if (type == 1) {
+	Node tempNode;
+	if (type == 1) {
       System.err.println("SYNCH:弹出栈顶非终结符");
-      this.stack.pop();
+      tempNode = this.stack.pop();
     } else if (type == 2) {
       System.err.println("恐慌模式:忽略输入符号");
       this.index++;
+      tempNode = this.stack.peek();
+    }else {//type == 0
+      System.err.println("ERROR:弹出栈顶终结符");
+      this.stack.pop();
+      return;
     }
+    
+    Vector<String> tempErrorData = new Vector<String>();
+    tempErrorData.add("0");//行号
+    String tempData = tempNode.data;
+    tempErrorData.add(WrongMessageMap.message.get(tempData));
+    this.errorData.add(tempErrorData);
   }
 
   public Node getRoot() {
     return this.root;
+  }
+  
+  public Vector<Vector<String>> getErrorData() {
+	  return this.errorData;
   }
 }
