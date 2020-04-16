@@ -112,9 +112,9 @@ public class SyntaxConverter {
       isDoneFollow = true;
       for (String nt : nonterminals) {
         if (nt.equals(start) && !followMap.get(nt).contains("$")) {
-          System.out.println(1);
-          System.out.println(followMap.get(nt));
-          System.out.println("$");
+//          System.out.println(1);
+//          System.out.println(followMap.get(nt));
+//          System.out.println("$");
 
           followMap.get(nt).add("$");
           isDoneFollow = false;
@@ -125,9 +125,9 @@ public class SyntaxConverter {
               int rIndex = p.getRightPart().indexOf(nt);
               if (rIndex == p.getRightPart().size() - 1) {
                 if (!followMap.get(nt).containsAll(followMap.get(p.getLeftPart()))) {
-                  System.out.println(2);
-                  System.out.println(followMap.get(nt));
-                  System.out.println(followMap.get(p.getLeftPart()));
+//                  System.out.println(2);
+//                  System.out.println(followMap.get(nt));
+//                  System.out.println(followMap.get(p.getLeftPart()));
 
                   followMap.get(nt).addAll(followMap.get(p.getLeftPart()));
                   isDoneFollow = false;
@@ -136,9 +136,9 @@ public class SyntaxConverter {
                 for (int i = rIndex; i < p.getRightPart().size() - 1; i++) {
                   if (!nonterminals.contains(p.getRightPart().get(i + 1))) {
                     if (!followMap.get(nt).contains(p.getRightPart().get(i + 1))) {
-                      System.out.println(3);
-                      System.out.println(followMap.get(nt));
-                      System.out.println(p.getRightPart().get(i + 1));
+//                      System.out.println(3);
+//                      System.out.println(followMap.get(nt));
+//                      System.out.println(p.getRightPart().get(i + 1));
 
                       followMap.get(nt).add(p.getRightPart().get(i + 1));
                       isDoneFollow = false;
@@ -149,18 +149,18 @@ public class SyntaxConverter {
                     followSet.addAll(firstMap.get(p.getRightPart().get(i + 1)));
                     followSet.remove("ε");
                     if (!followMap.get(nt).containsAll(followSet)) {
-                      System.out.println(4);
-                      System.out.println(followMap.get(nt));
-                      System.out.println(followSet);
+//                      System.out.println(4);
+//                      System.out.println(followMap.get(nt));
+//                      System.out.println(followSet);
 
                       followMap.get(nt).addAll(followSet);
                       isDoneFollow = false;
                     }
                     if(i == p.getRightPart().size()-2 && firstMap.get(p.getRightPart().get(i + 1)).contains("ε")) {
                       if (!followMap.get(nt).containsAll(followMap.get(p.getLeftPart()))) {
-                        System.out.println(5);
-                        System.out.println(followMap.get(nt));
-                        System.out.println(followMap.get(p.getLeftPart()));
+//                        System.out.println(5);
+//                        System.out.println(followMap.get(nt));
+//                        System.out.println(followMap.get(p.getLeftPart()));
 
                         followMap.get(nt).addAll(followMap.get(p.getLeftPart()));
                         isDoneFollow = false;
@@ -211,6 +211,23 @@ public class SyntaxConverter {
     return result;
 
   }
+  
+  public boolean checkConflict() {
+    for (Production p1 : productions) {
+      for (Production p2 : productions) {
+        if(p1.leftPart.equals(p2.leftPart) && !p1.getRightPart().equals(p2.getRightPart())) {
+          for(String sig:selectMap.get(p2)) {
+            if(selectMap.get(p1).contains(sig))
+            {
+              return false;
+            }
+          }
+        }
+      }
+    }
+    return true;
+    
+  }
 
   public Vector<Vector<String>> getSelectData() {
     for (Production p : productions) {
@@ -238,6 +255,22 @@ public class SyntaxConverter {
         }
       }
     }
+    
+    for (Production p1 : productions) {
+      for (Production p2 : productions) {
+        if(p1.leftPart.equals(p2.leftPart) && !p1.getRightPart().equals(p2.getRightPart())) {
+          for(String sig:selectMap.get(p2)) {
+            if(selectMap.get(p1).contains(sig))
+            {
+              System.out.println("出现冲突");
+              System.out.println(p1.getLeftPart()+"->"+p1);
+              System.out.println(p2.getLeftPart()+"->"+p2);
+            }
+          }
+        }
+      }
+    }
+    
     Vector<Vector<String>> result = new Vector<Vector<String>>();
     for (Production p : productions) {
       Vector<String> line = new Vector<String>();
