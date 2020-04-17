@@ -41,7 +41,14 @@ public class Parser2Tree {
       String token = this.tokenData.get(index).get(2);
       if (top.equals(token)) { // 栈顶终结符与输入相同
         Node terminal = this.stack.pop();
+
+        terminal.generated = true; // 修改: 终结符也需扩展
+        pointer2Next(); // 改变指针
+
         terminal.setWord(this.tokenData.get(index).get(1)); // 为终结符赋值
+        this.index++;
+      } else if (token.equals("$")) { // 文本末尾
+        error(3);
         this.index++;
       } else if (!this.syntaxConverter.nonterminals.contains(top)) {
         error(0); // 栈顶终结符与输入不符
@@ -58,6 +65,19 @@ public class Parser2Tree {
           error(1);
         } else if (production.equals("")) {
           error(2);
+        } else if (production.equals("ε")) {
+          Node node = new Node("ε", true);
+          node.generated = true;
+
+          this.pointer.children.add(node);
+          node.parrent = this.pointer;
+
+          // 已扩展
+          this.pointer.generated = true;
+          // 改变指针
+          pointer2Next();
+          // 弹栈
+          this.stack.pop();
         } else { // 正确
           // 存产生式
           String[] symbols = production.split(" ");
@@ -85,23 +105,23 @@ public class Parser2Tree {
           // 弹栈
           this.stack.pop();
           // 压栈
-          if (!production.equals("ε")) {
-            for (int i = temp.size() - 1; i >= 0; i--) {
-              this.stack.push(temp.get(i));
-            }
+          for (int i = temp.size() - 1; i >= 0; i--) {
+            this.stack.push(temp.get(i));
           }
         }
       }
       top = this.stack.peek().data;
     }
     System.out.println("分析完成");
+
   }
 
   // 指针指向下一个可扩展节点
   private void pointer2Next() {
     // 子节点有非终结符 可扩展
     for (Node node : this.pointer.children) {
-      if (!node.terminal && !node.generated) {
+      // if (!node.terminal && !node.generated) {
+      if (!node.generated) { // 修改: 终结符也需扩展
         this.pointer = node;
         return;
       }
@@ -114,7 +134,8 @@ public class Parser2Tree {
   }
 
   private boolean traverse(Node parrent) {
-    if (!parrent.terminal && !parrent.generated) {
+    // if (!parrent.terminal && !parrent.generated) {
+    if (!parrent.generated) { // 修改: 终结符也需扩展
       this.pointer = parrent;
       return true;
     }
@@ -130,8 +151,6 @@ public class Parser2Tree {
 
   public void error(int type) {
     Vector<String> errorLine = new Vector<String>();
-    errorLine.add(this.tokenData.get(this.index).get(0)); // 行号
-    errorLine.add(this.tokenData.get(this.index).get(1)); // 错误项
 
     Node errorNode;
     String errorInfo;
@@ -139,16 +158,35 @@ public class Parser2Tree {
     if (type == 1) {
       System.err.println("SYNCH: 弹出栈顶非终结符");
       errorNode = this.stack.pop();
+
+      errorLine.add(this.tokenData.get(this.index).get(0)); // 行号
+      errorLine.add(this.tokenData.get(this.index).get(1)); // 错误项
       errorInfo = ErrorInfo.message.get(errorNode.data);
     } else if (type == 2) {
       System.err.println("PANIC: 忽略输入符号");
-      this.index++;
       errorNode = this.stack.peek();
+
+      errorLine.add(this.tokenData.get(this.index).get(0)); // 行号
+      errorLine.add(this.tokenData.get(this.index).get(1)); // 错误项
       errorInfo = ErrorInfo.message.get(errorNode.data);
-    } else { // type == 0
+
+      this.index++;
+    } else if (type == 0) {
       System.err.println("ERROR: 弹出栈顶终结符");
       errorNode = this.stack.pop();
+
+      // 已扩展
+      errorNode.generated = true;
+      // 改变指针
+      pointer2Next();
+
+      errorLine.add(this.tokenData.get(this.index - 1).get(0)); // 行号
+      errorLine.add(this.tokenData.get(this.index - 1).get(1)); // 错误项
       errorInfo = "缺少终结符: " + ErrorInfo.operations.get(errorNode.data);
+    } else { // type == 3
+      errorLine.add(this.tokenData.get(this.index - 1).get(0));
+      errorLine.add(this.tokenData.get(this.index - 1).get(1));
+      errorInfo = "缺少末尾终结符";
     }
 
     errorLine.add(errorInfo);
