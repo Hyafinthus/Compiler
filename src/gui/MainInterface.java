@@ -19,7 +19,7 @@ public class MainInterface extends JFrame implements ActionListener{
 	private static final long serialVersionUID = -6977141133138401619L;
 	
 	//主窗口的所有控件
-	JPanel jp1, jp2;
+	JPanel jp1;
 	JButton jb1, jb2, jb3, jb4; // 按钮
 	JTextField jtf1;
 	JScrollPane jsp1;
@@ -55,6 +55,26 @@ public class MainInterface extends JFrame implements ActionListener{
 	    this.jtf1.setEditable(false);
 	    this.jtf1.setBounds(50, 40, 620, 30);
 	    
+	    // 设置文本域,同时禁用JTextPane的自动换行功能
+	    this.jtp1 = new JTextPane() {
+	      private static final long serialVersionUID = 4854670851066293168L;
+
+	      public boolean getScrollableTracksViewportWidth() {
+	        return false;
+	      }
+
+	      public void setSize(Dimension d) {
+	        if (d.width < getParent().getSize().width) {
+	          d.width = getParent().getSize().width;
+	        }
+	        d.width += 100;
+	        super.setSize(d);
+	      }
+	    };
+	    this.jtp1.setFont(new Font("Consolas", Font.PLAIN, 20));
+	    this.jsp1 = new JScrollPane(jtp1);
+	    this.jsp1.setBounds(50, 100, 500, 440);
+	    
 	    this.jp1 = new JPanel();
 	    this.jp1.setLayout(null);
 	    
@@ -62,6 +82,10 @@ public class MainInterface extends JFrame implements ActionListener{
 	    
 	    this.jp1.add(jb1);
 	    this.jp1.add(jtf1);
+		this.jp1.add(jb2);
+		this.jp1.add(jb3);
+		this.jp1.add(jb4);
+		this.jp1.add(jsp1);
 	    
 	    this.setContentPane(jp1);
 	}
@@ -95,30 +119,7 @@ public class MainInterface extends JFrame implements ActionListener{
 
 	// 将text内容读到文本域上供修改
 	  private void readtext() {
-	    // 设置画板2
-	    this.jp2 = new JPanel();
-	    this.jp2.setSize(800, 600);
-	    this.jp2.setLocation(0, 0);
-	    this.jp2.setLayout(null);
-
-	    // 设置文本域,同时禁用JTextPane的自动换行功能
-	    this.jtp1 = new JTextPane() {
-	      private static final long serialVersionUID = 4854670851066293168L;
-
-	      public boolean getScrollableTracksViewportWidth() {
-	        return false;
-	      }
-
-	      public void setSize(Dimension d) {
-	        if (d.width < getParent().getSize().width) {
-	          d.width = getParent().getSize().width;
-	        }
-	        d.width += 100;
-	        super.setSize(d);
-	      }
-	    };
-
-	    // 将text读入文本域中
+		// 将text读入文本域中
 	    try {
 	      FileInputStream fis = new FileInputStream(ResourceManager.text);
 	      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));// 转换成字符流，有readline方法可以直接读取一行的数据，方便文本的读取
@@ -136,13 +137,7 @@ public class MainInterface extends JFrame implements ActionListener{
 	      this.jsp1 = new JScrollPane(jtp1);
 	      this.jsp1.setBounds(50, 100, 500, 440);
 	      
-	      this.jp2.add(jb1);
-		  this.jp2.add(jb2);
-		  this.jp2.add(jb3);
-		  this.jp2.add(jb4);
-		  this.jp2.add(jtf1);
-		  this.jp2.add(jsp1);
-		  this.setContentPane(jp2);
+	      
 	      
 	    } catch (IOException e) {
 	      e.printStackTrace();

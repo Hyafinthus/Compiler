@@ -145,6 +145,7 @@ public class Parser2Tree {
     
     Vector<String> tempErrorData = new Vector<String>();
     tempErrorData.add("0");//行号
+    tempErrorData.add("1");//错误项
     String tempData = tempNode.data;
     tempErrorData.add(tempData +":" + WrongMessageMap.message.get(tempData));
     this.errorData.add(tempErrorData);
