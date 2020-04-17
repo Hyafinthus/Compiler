@@ -132,13 +132,8 @@ public class MainInterface extends JFrame implements ActionListener{
 	      }
 	      bufferedReader.close();// 关闭输入流
 	      // 设置文本域及画板显示
-	      this.jtp1.setFont(new Font("Consolas", Font.PLAIN, 20));
 	      this.jtp1.setText(str.toString());
-	      this.jsp1 = new JScrollPane(jtp1);
-	      this.jsp1.setBounds(50, 100, 500, 440);
-	      
-	      
-	      
+	   
 	    } catch (IOException e) {
 	      e.printStackTrace();
 	    }
