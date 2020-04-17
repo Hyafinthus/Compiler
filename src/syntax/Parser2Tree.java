@@ -63,7 +63,6 @@ public class Parser2Tree {
         } else if (production.equals("")) {
           if (token.equals("$")) {
             error(3);
-            this.index++;
           } else {
             error(2);
           }
@@ -161,6 +160,11 @@ public class Parser2Tree {
       System.err.println("SYNCH: 弹出栈顶非终结符");
       errorNode = this.stack.pop();
 
+      // 已扩展
+      errorNode.generated = true;
+      // 改变指针
+      pointer2Next();
+
       errorLine.add(this.tokenData.get(this.index).get(0)); // 行号
       errorLine.add(this.tokenData.get(this.index).get(1)); // 错误项
       errorInfo = ErrorInfo.message.get(errorNode.data);
@@ -184,11 +188,14 @@ public class Parser2Tree {
 
       errorLine.add(this.tokenData.get(this.index - 1).get(0)); // 行号
       errorLine.add(this.tokenData.get(this.index - 1).get(1)); // 错误项
-      errorInfo = "缺少终结符: " + ErrorInfo.operations.get(errorNode.data);
+      errorInfo = "缺少终结符: " + (ErrorInfo.operations.get(errorNode.data) == null ? errorNode.data
+          : ErrorInfo.operations.get(errorNode.data));
     } else { // type == 3
       errorLine.add(this.tokenData.get(this.index - 1).get(0));
       errorLine.add(this.tokenData.get(this.index - 1).get(1));
       errorInfo = "缺少末尾终结符";
+
+      this.index++;
     }
 
     errorLine.add(errorInfo);

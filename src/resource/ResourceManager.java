@@ -184,7 +184,8 @@ public class ResourceManager {
     File dfaXls = new File(dfaPath);
     DFAexcel_reader(dfaXls);
     Vector<Vector<String>> tokens = lexicalAnalysis(text);
-    Vector<String> last = new Vector<>(Arrays.asList("", "", "$"));
+    Vector<String> last =
+        new Vector<>(Arrays.asList(tokens.get(tokens.size() - 1).get(0), "$", "$"));
     tokens.add(last);
     return tokens;
   }

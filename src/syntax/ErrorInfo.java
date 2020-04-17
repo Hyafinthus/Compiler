@@ -8,7 +8,8 @@ import lexical.Keyword;
 public class ErrorInfo {
   public static Map<String, String> message = new HashMap<>();
   static {
-    message.put("P", "语法分析错误");
+    message.put("Program", "语法错误");
+    message.put("P", "语法错误");
     message.put("D", "声明语句有误");
     message.put("A", "声明语句有误");
     message.put("M", "数组声明出错");
@@ -16,13 +17,13 @@ public class ErrorInfo {
     message.put("T", "数组声明出错");
     message.put("X", "请输入正确的数据类型\"int\"\"float\"或者\"char\"");
     message.put("C", "缺少\"(\"或\"[\"或\"{\"");
-    message.put("S", "语法分析错误");
+    message.put("S", "语法错误");
     message.put("V", "应使用\"++\"或\"--\"");
     message.put("N", "缺少\"case\"");
     message.put("E", "运算式有误");
     message.put("E'", "缺少运算符号");
-    message.put("G", "语法分析错误");
-    message.put("G'", "语法分析错误");
+    message.put("G", "表达式赋值错误");
+    message.put("G'", "表达式赋值错误");
     message.put("L", "缺少标识符");
     message.put("L'", "缺少\"(\"或\"[\"或\"{\"");
     message.put("B", "请使用bool值");
