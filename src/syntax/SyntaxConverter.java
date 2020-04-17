@@ -9,6 +9,7 @@ import java.util.Vector;
 public class SyntaxConverter {
   private ArrayList<Production> productions = new ArrayList<Production>();
   public HashSet<String> nonterminals = new HashSet<String>();
+  public HashSet<String> terminals = new HashSet<String>();
   private String start;
 
   private HashMap<String, HashSet<String>> firstMap = new HashMap<String, HashSet<String>>();
@@ -59,6 +60,7 @@ public class SyntaxConverter {
     for (int i = 1; i < xlsTitle.size(); i++) {
       if (xlsTitle.get(i).length() > 0) {
         rightPart.add(xlsTitle.get(i));
+        terminals.add(xlsTitle.get(i));
       }
     }
     Production production = new Production(xlsTitle.get(0), rightPart);
@@ -69,11 +71,14 @@ public class SyntaxConverter {
       for (int i = 1; i < line.size(); i++) {
         if (line.get(i).length() > 0) {
           rightPart.add(line.get(i));
+          terminals.add(line.get(i));
         }
       }
       production = new Production(line.get(0), rightPart);
       productions.add(production);
     }
+    terminals.removeAll(nonterminals);
+    terminals.remove("ε");
   }
 
   public Vector<Vector<String>> getFirstFollowData() {
@@ -286,12 +291,8 @@ public class SyntaxConverter {
   }
 
   public Vector<String> getLLanalysisTitle() {
-    HashSet<String> titleSet = new HashSet<String>();
-    for (Production p : productions) {
-      titleSet.addAll(selectMap.get(p));
-    }
     analysisTitle.add("");
-    for (String str : titleSet) {
+    for (String str : terminals) {
       analysisTitle.add(str);
     }
     return analysisTitle;
