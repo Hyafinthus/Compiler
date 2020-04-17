@@ -1,15 +1,15 @@
 package lexical;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public final class Keyword {
   // 关键字
-  public static Set<String> keywords = new HashSet<>(
-      Arrays.asList("int", "float", "bool", "char", "record", "if", "then", "else", "switch",
+  public static Set<String> keywords =
+      new HashSet<>(Arrays.asList("int", "float", "char", "record", "if", "then", "else", "switch",
           "case", "default", "true", "false", "for", "do", "while", "proc", "call", "return"));
 
   // 二元运算符
@@ -17,7 +17,8 @@ public final class Keyword {
       Arrays.asList("+=", "-=", "*=", "/=", "++", "--", "<=", ">=", "!=", "==", "&&", "||"));
 
   // 单词到种别码映射
-  public static Map<String, String> species = new HashMap<>();
+  // public static Map<String, String> species = new HashMap<>();
+  public static BiMap<String, String> species = HashBiMap.create();
   static {
     // 算术运算符
     species.put("+", "PLS");

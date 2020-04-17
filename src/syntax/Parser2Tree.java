@@ -37,14 +37,14 @@ public class Parser2Tree {
 
   public void analysis() {
     String top = this.stack.peek().data;
-    while (!top.equals("$")) {
+    while (!top.equals("$") && this.index < this.tokenData.size()) {
       String token = this.tokenData.get(index).get(2);
       if (top.equals(token)) { // 栈顶终结符与输入相同
         Node terminal = this.stack.pop();
         terminal.setWord(this.tokenData.get(index).get(1)); // 为终结符赋值
         this.index++;
       } else if (!this.syntaxConverter.nonterminals.contains(top)) {
-        error(0);
+        error(0); // 栈顶终结符与输入不符
       } else {
         System.err.println(top);
         int rowIndex = this.syntaxConverter.nonterminalIndex.get(top);
@@ -129,26 +129,30 @@ public class Parser2Tree {
   }
 
   public void error(int type) {
-    Node tempNode;
+    Vector<String> errorLine = new Vector<String>();
+    errorLine.add(this.tokenData.get(this.index).get(0)); // 行号
+    errorLine.add(this.tokenData.get(this.index).get(1)); // 错误项
+
+    Node errorNode;
+    String errorInfo;
+
     if (type == 1) {
       System.err.println("SYNCH: 弹出栈顶非终结符");
-      tempNode = this.stack.pop();
+      errorNode = this.stack.pop();
+      errorInfo = ErrorInfo.message.get(errorNode.data);
     } else if (type == 2) {
       System.err.println("PANIC: 忽略输入符号");
       this.index++;
-      tempNode = this.stack.peek();
+      errorNode = this.stack.peek();
+      errorInfo = ErrorInfo.message.get(errorNode.data);
     } else { // type == 0
       System.err.println("ERROR: 弹出栈顶终结符");
-      this.stack.pop();
-      return;
+      errorNode = this.stack.pop();
+      errorInfo = "缺少终结符: " + ErrorInfo.operations.get(errorNode.data);
     }
 
-    Vector<String> tempErrorData = new Vector<String>();
-    tempErrorData.add("0"); // 行号
-    tempErrorData.add("1"); // 错误项
-    String tempData = tempNode.data;
-    tempErrorData.add(tempData + ":" + WrongMessageMap.message.get(tempData));
-    this.errorData.add(tempErrorData);
+    errorLine.add(errorInfo);
+    this.errorData.add(errorLine);
   }
 
   public Node getRoot() {

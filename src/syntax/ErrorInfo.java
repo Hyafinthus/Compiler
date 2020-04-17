@@ -1,9 +1,11 @@
 package syntax;
 
+import com.google.common.collect.BiMap;
 import java.util.HashMap;
 import java.util.Map;
+import lexical.Keyword;
 
-public class WrongMessageMap {
+public class ErrorInfo {
   public static Map<String, String> message = new HashMap<>();
   static {
     message.put("P", "????");
@@ -31,6 +33,15 @@ public class WrongMessageMap {
     message.put("relop", "缺少比较符");
     message.put("Elist", "函数调用有误");
     message.put("Elist'", "缺少逗号");
+  }
 
+  public static BiMap<String, String> operations = Keyword.species.inverse();
+  static {
+    operations.put("IDN", "标识符");
+    operations.put("CST", "常数");
+    operations.put("FLT", "浮点数");
+    operations.put("OCT", "八进制常数");
+    operations.put("HEX", "十六进制常数");
+    operations.put("CHR", "字符常数");
   }
 }
