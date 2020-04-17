@@ -1,11 +1,14 @@
-package gui;
+ package gui;
 
 import java.util.List;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
+import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import resource.ResourceManager;
@@ -43,6 +46,7 @@ public class SyntaxResultGui extends JFrame {
     this.add(jsp1);
     
     this.jt2 = new JTable(ResourceManager.SyntaxErrordata, ResourceManager.SyntaxErrordataTitle);
+    setTableFormat(this.jt2);
     this.jta2 = new JTextArea();
     this.jsp2 = new JScrollPane(jta2);
     this.jsp2.setBounds(550, 30, 500, 700);
@@ -69,4 +73,17 @@ public class SyntaxResultGui extends JFrame {
     return parrent;
   }
 
+  private void setTableFormat(JTable table) {
+	    table.setRowHeight(25);
+	    
+	    // 设置表头文字居中显示
+	    DefaultTableCellRenderer renderer =
+	        (DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
+	    renderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+	    // 设置表格中的数据居中显示
+	    DefaultTableCellRenderer r = new DefaultTableCellRenderer();
+	    r.setHorizontalAlignment(JLabel.CENTER);
+	    table.setDefaultRenderer(Object.class, r);
+	  }
 }
