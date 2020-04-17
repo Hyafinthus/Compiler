@@ -55,9 +55,9 @@ public class ResourceManager {
 
   // 语法分析错误存放此处
   public static Vector<Vector<String>> SyntaxErrordata = new Vector<Vector<String>>();
-  public static Vector<String> SyntaxErrordataTitle = 
-		  new Vector<String>(Arrays.asList("行号", "错误项", "错误信息"));
-  
+  public static Vector<String> SyntaxErrordataTitle =
+      new Vector<String>(Arrays.asList("行号", "错误项", "错误信息"));
+
   // 存储语法分析树结构根节点
   public static Node treeRoot;
 

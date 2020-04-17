@@ -1,0 +1,5 @@
+int a *;	 /*多了个乘号*/ 
+record stack     /*少了左大括号*/
+ int e;
+ char g;}
+float f = 2.1	 /*少了个分号*/  

@@ -47,9 +47,6 @@ public class Parser2Tree {
 
         terminal.setWord(this.tokenData.get(index).get(1)); // 为终结符赋值
         this.index++;
-      } else if (token.equals("$")) { // 文本末尾
-        error(3);
-        this.index++;
       } else if (!this.syntaxConverter.nonterminals.contains(top)) {
         error(0); // 栈顶终结符与输入不符
       } else {
@@ -64,7 +61,12 @@ public class Parser2Tree {
         if (production.equals("synch")) {
           error(1);
         } else if (production.equals("")) {
-          error(2);
+          if (token.equals("$")) {
+            error(3);
+            this.index++;
+          } else {
+            error(2);
+          }
         } else if (production.equals("ε")) {
           Node node = new Node("ε", true);
           node.generated = true;
@@ -135,7 +137,7 @@ public class Parser2Tree {
 
   private boolean traverse(Node parrent) {
     // if (!parrent.terminal && !parrent.generated) {
-    if (!parrent.generated) { // 修改: 终结符也需扩展
+    if (!parrent.generated) { // 修改: 终结符也需扩展 // <NOTICE> 终结符扩展未使用 日后可用于添加新功能
       this.pointer = parrent;
       return true;
     }
