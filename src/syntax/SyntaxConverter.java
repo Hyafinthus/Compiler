@@ -295,6 +295,7 @@ public class SyntaxConverter {
     for (String str : terminals) {
       analysisTitle.add(str);
     }
+    analysisTitle.add("$");
     return analysisTitle;
   }
 
