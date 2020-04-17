@@ -102,7 +102,9 @@ public class Dfa2Token {
 
       pending = new StringBuilder();
 
+      System.out.println(specie);
       if (!specie.equals("CMT")) { // 跳过注释
+
         words.add(word);
 
         // String token = "< " + specie + ", " + attr + " >";
