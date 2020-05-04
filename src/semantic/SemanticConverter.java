@@ -8,6 +8,7 @@ import java.util.Vector;
 
 public class SemanticConverter {
   private ArrayList<Production> productions = new ArrayList<Production>();
+  private ArrayList<Production> actionProductions = new ArrayList<Production>();
   public HashSet<String> nonterminals = new HashSet<String>();
   public HashSet<String> terminals = new HashSet<String>();
   private String start;
@@ -55,27 +56,41 @@ public class SemanticConverter {
   // 读取文法表格，为产生式们赋值
   public SemanticConverter(Vector<String> xlsTitle, Vector<Vector<String>> xlsData) {
     ArrayList<String> rightPart = new ArrayList<String>();
+    ArrayList<String> actionRightPart = new ArrayList<String>();
     nonterminals.add(xlsTitle.get(0));
     start = xlsTitle.get(0);
     for (int i = 1; i < xlsTitle.size(); i++) {
       if (xlsTitle.get(i).length() > 0) {
-        rightPart.add(xlsTitle.get(i));
-        terminals.add(xlsTitle.get(i));
+        
+        actionRightPart.add(xlsTitle.get(i));
+        if(!xlsTitle.get(i).contains("{")) {
+          rightPart.add(xlsTitle.get(i));
+          terminals.add(xlsTitle.get(i));
+        }
       }
     }
     Production production = new Production(xlsTitle.get(0), rightPart);
     productions.add(production);
+    production = new Production(xlsTitle.get(0), actionRightPart);
+    actionProductions.add(production);
+    
     for (Vector<String> line : xlsData) {
       nonterminals.add(line.get(0));
       rightPart = new ArrayList<String>();
+      actionRightPart = new ArrayList<String>();
       for (int i = 1; i < line.size(); i++) {
         if (line.get(i).length() > 0) {
-          rightPart.add(line.get(i));
-          terminals.add(line.get(i));
+          actionRightPart.add(line.get(i));
+          if(!line.get(i).contains("{")) {
+            rightPart.add(line.get(i));
+            terminals.add(line.get(i));
+          }
         }
       }
       production = new Production(line.get(0), rightPart);
       productions.add(production);
+      production = new Production(line.get(0), actionRightPart);
+      actionProductions.add(production);
     }
     terminals.removeAll(nonterminals);
     terminals.remove("ε");
@@ -90,6 +105,7 @@ public class SemanticConverter {
     while (!isDoneFirst) {
       isDoneFirst = true;
       for (Production p : productions) {
+        System.out.println(p);
         if (!nonterminals.contains(p.rightPart.get(0))) {
           // 加进新符号就说明还未结束
           if (!firstMap.get(p.leftPart).contains(p.rightPart.get(0))) {
@@ -309,8 +325,10 @@ public class SemanticConverter {
       for (int i = 1; i < analysisTitle.size(); i++) {
         notNull = false;
         for (Production p : productions) {
+          int pIndex = productions.indexOf(p);
+          Production ap = actionProductions.get(pIndex);
           if (p.getLeftPart().equals(nt) && selectMap.get(p).contains(analysisTitle.get(i))) {
-            line.add(p.toString());
+            line.add(ap.toString());
             notNull = true;
             break;
           }
