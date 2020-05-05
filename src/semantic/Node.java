@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Node {
-  public String data; // 非终结符 终结符token
+  public String data; // 非终结符 终结符token 语义动作字符串
   public String word; // 终结符word 用于输出
 
   // 是终结符
@@ -15,19 +15,16 @@ public class Node {
   public Node parrent;
   public List<Node> children = new ArrayList<>();
 
-  // ========== ========== ========== ========== ==========
-
+  // ========== ========== ========== ========== ========== ========== ========== ==========
   // 是语义动作
-  public boolean isAction = false;
-  // 语义动作字符串
-  public String action;
+  public boolean action = false;
 
-  public Node(String action) {
-    this.action = action;
-    this.isAction = true;
+  public Node(String data) {
+    this.data = data;
+    this.action = true;
+    this.generated = true;
   }
-
-  // ========== ========== ========== ========== ==========
+  // ========== ========== ========== ========== ========== ========== ========== ==========
 
   public Node(String data, boolean terminal) {
     this.data = data;

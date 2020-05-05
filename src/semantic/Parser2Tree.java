@@ -1,5 +1,6 @@
 package semantic;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -38,6 +39,20 @@ public class Parser2Tree {
   public void analysis() {
     String top = this.stack.peek().data;
     while (!top.equals("$") && this.index < this.tokenData.size()) {
+      // ========== ========== ========== ========== ========== ========== ========== ==========
+      // 栈顶节点是语义动作节点
+      if (this.stack.peek().action) {
+        Node action = this.stack.pop();
+        String function = action.data.replaceAll("[{}]", "");
+        try {
+          Action.function.get(function).invoke(Action.class, action);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+          e.printStackTrace();
+        }
+        continue;
+      }
+      // ========== ========== ========== ========== ========== ========== ========== ==========
+
       String token = this.tokenData.get(index).get(2);
       if (top.equals(token)) { // 栈顶终结符与输入相同
         Node terminal = this.stack.pop();
@@ -89,7 +104,13 @@ public class Parser2Tree {
           // 存树
           for (String symbol : symbols) {
             Node node;
-            if (this.semanticConverter.nonterminals.contains(symbol)) {
+            // ========== ========== ========== ========== ========== ========== ==========
+            // 生成语义动作节点
+            if (symbol.contains("{") && symbol.contains("}")) {
+              node = new Node(symbol);
+            }
+            // ========== ========== ========== ========== ========== ========== ==========
+            else if (this.semanticConverter.nonterminals.contains(symbol)) {
               node = new Node(symbol, false);
             } else {
               node = new Node(symbol, true);
