@@ -24,7 +24,8 @@ public class SemanticParser2Tree {
   // 错误信息
   private Vector<Vector<String>> errorData = new Vector<>();
 
-  public SemanticParser2Tree(SemanticConverter semanticConverter, Vector<Vector<String>> tokenData) {
+  public SemanticParser2Tree(SemanticConverter semanticConverter,
+      Vector<Vector<String>> tokenData) {
     this.semanticConverter = semanticConverter;
     this.tokenData = tokenData;
 
@@ -61,6 +62,7 @@ public class SemanticParser2Tree {
         pointer2Next(); // 改变指针
 
         terminal.setWord(this.tokenData.get(index).get(1)); // 为终结符赋值
+        terminal.setLineIndex(this.tokenData.get(index).get(0)); // 为终结符加行号
         this.index++;
       } else if (!this.semanticConverter.nonterminals.contains(top)) {
         error(0); // 栈顶终结符与输入不符
@@ -210,8 +212,9 @@ public class SemanticParser2Tree {
 
       errorLine.add(this.tokenData.get(this.index - 1).get(0)); // 行号
       errorLine.add(this.tokenData.get(this.index - 1).get(1)); // 错误项
-      errorInfo = "缺少终结符: " + (SemanticErrorInfo.operations.get(errorNode.data) == null ? errorNode.data
-          : SemanticErrorInfo.operations.get(errorNode.data));
+      errorInfo =
+          "缺少终结符: " + (SemanticErrorInfo.operations.get(errorNode.data) == null ? errorNode.data
+              : SemanticErrorInfo.operations.get(errorNode.data));
     } else { // type == 3
       errorLine.add(this.tokenData.get(this.index - 1).get(0));
       errorLine.add(this.tokenData.get(this.index - 1).get(1));
