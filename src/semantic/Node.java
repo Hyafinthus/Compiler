@@ -1,7 +1,9 @@
 package semantic;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Node {
   public String data; // 非终结符 终结符token 语义动作字符串
@@ -18,6 +20,9 @@ public class Node {
   // ========== ========== ========== ========== ========== ========== ========== ==========
   // 是语义动作
   public boolean action = false;
+
+  // 节点属性
+  public Map<String, String> attr = new HashMap<>();
 
   public Node(String data) {
     this.data = data;
