@@ -40,7 +40,7 @@ public class SemanticParser2Tree {
   public void analysis() {
     String top = this.stack.peek().data;
     while (!top.equals("$") && this.index < this.tokenData.size()) {
-      // ========== ========== ========== ========== ========== ========== ========== ==========
+      // ========== ========== ========== ========== ========== ========== ==========
       // 栈顶节点是语义动作节点
       if (this.stack.peek().action) {
         SemanticNode action = this.stack.pop();
@@ -50,9 +50,10 @@ public class SemanticParser2Tree {
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
           e.printStackTrace();
         }
+        top = this.stack.peek().data;
         continue;
       }
-      // ========== ========== ========== ========== ========== ========== ========== ==========
+      // ========== ========== ========== ========== ========== ========== ==========
 
       String token = this.tokenData.get(index).get(2);
       if (top.equals(token)) { // 栈顶终结符与输入相同
@@ -84,20 +85,23 @@ public class SemanticParser2Tree {
           } else {
             error(2);
           }
-        } else if (production.equals("ε")) {
-          SemanticNode node = new SemanticNode("ε", true);
-          node.generated = true;
-
-          this.pointer.children.add(node);
-          node.parrent = this.pointer;
-
-          // 已扩展
-          this.pointer.generated = true;
-          // 改变指针
-          pointer2Next();
-          // 弹栈
-          this.stack.pop();
-        } else { // 正确
+        }
+        // 空产生式可能包含语义动作
+        // else if (production.equals("ε")) {
+        // SemanticNode node = new SemanticNode("ε", true);
+        // node.generated = true;
+        //
+        // this.pointer.children.add(node);
+        // node.parrent = this.pointer;
+        //
+        // // 已扩展
+        // this.pointer.generated = true;
+        // // 改变指针
+        // pointer2Next();
+        // // 弹栈
+        // this.stack.pop();
+        // }
+        else { // 正确
           // 存产生式
           String[] symbols = production.split(" ");
           // 存该生成式扩展的Node
@@ -108,6 +112,14 @@ public class SemanticParser2Tree {
             SemanticNode node;
             // ========== ========== ========== ========== ========== ========== ==========
             // 生成语义动作节点
+            if (symbol.equals("ε")) {
+              node = new SemanticNode("ε", true);
+              node.generated = true;
+              this.pointer.children.add(node);
+              node.parrent = this.pointer;
+              continue;
+            }
+
             if (symbol.contains("{") && symbol.contains("}")) {
               node = new SemanticNode(symbol);
             }

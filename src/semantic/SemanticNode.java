@@ -17,7 +17,7 @@ public class SemanticNode {
   public SemanticNode parrent;
   public List<SemanticNode> children = new ArrayList<>();
 
-  // ========== ========== ========== ========== ========== ========== ========== ==========
+  // ========== ========== ========== ========== ========== ========== ==========
   // 行号
   public String lineIndex;
   // 是语义动作
@@ -34,7 +34,7 @@ public class SemanticNode {
   public void setLineIndex(String lineIndex) {
     this.lineIndex = lineIndex;
   }
-  // ========== ========== ========== ========== ========== ========== ========== ==========
+  // ========== ========== ========== ========== ========== ========== ==========
 
   public SemanticNode(String data, boolean terminal) {
     this.data = data;
