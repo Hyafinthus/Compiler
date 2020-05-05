@@ -21,7 +21,7 @@ import javax.swing.table.TableColumnModel;
 import resource.FileFilter;
 import resource.ResourceManager;
 
-public class SyntaxGui extends JFrame implements ActionListener {
+public class SemanticGui extends JFrame implements ActionListener {
   private static final long serialVersionUID = -990548592332708520L;
 
   // 主窗口的所有控件
@@ -35,7 +35,7 @@ public class SyntaxGui extends JFrame implements ActionListener {
   JTextPane txtjtp;// 专门显示文本的文本域
   File analysisExcel;
 
-  public SyntaxGui(JTextPane jtp0) {
+  public SemanticGui(JTextPane jtp0) {
     this.txtjtp = jtp0;
 
     // Frame初始化设置
@@ -98,19 +98,19 @@ public class SyntaxGui extends JFrame implements ActionListener {
       }
     } else if (e.getSource().equals(jb2)) {
       // TODO
-      ResourceManager.syntaxAnalysis(this.txtjtp.getText());
-      SyntaxResultGui syntaxResultGui = new SyntaxResultGui();
+      ResourceManager.semanticAnalysis(this.txtjtp.getText());
+      SemanticResultGui semanticResultGui = new SemanticResultGui();
     }
   }
 
-  private void readAnalysisExcel() {
+  private void readAnalysisExcel() { 
     this.jp2 = new JPanel();
     this.jp2.setSize(800, 600);
     this.jp2.setLocation(0, 0);
     this.jp2.setLayout(null);
 
     // 读入分析表文件，修改资源管理中的数据内容
-    ResourceManager.syntax_LLexcel_reader(analysisExcel);
+    ResourceManager.semantic_LLexcel_reader(analysisExcel);
 
     // first,follow集界面设置
     this.jt1 = new JTable(ResourceManager.FirstFollowdata, ResourceManager.FirstFollowdataTitle);

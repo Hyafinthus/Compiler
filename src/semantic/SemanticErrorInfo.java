@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lexical.Keyword;
 
-public class ErrorInfo {
+public class SemanticErrorInfo {
   public static Map<String, String> message = new HashMap<>();
   static {
     message.put("Program", "语法错误");

@@ -6,32 +6,32 @@ import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
-public class Parser2Tree {
+public class SemanticParser2Tree {
   // 预测分析表
   private SemanticConverter semanticConverter;
 
   // Node栈
-  private Stack<Node> stack = new Stack<>();
+  private Stack<SemanticNode> stack = new Stack<>();
 
   // 输入Token
   private Vector<Vector<String>> tokenData;
   private int index = 0;
 
   // 输出Tree
-  private Node root;
-  private Node pointer;
+  private SemanticNode root;
+  private SemanticNode pointer;
 
   // 错误信息
   private Vector<Vector<String>> errorData = new Vector<>();
 
-  public Parser2Tree(SemanticConverter semanticConverter, Vector<Vector<String>> tokenData) {
+  public SemanticParser2Tree(SemanticConverter semanticConverter, Vector<Vector<String>> tokenData) {
     this.semanticConverter = semanticConverter;
     this.tokenData = tokenData;
 
-    this.root = new Node("Program", false);
+    this.root = new SemanticNode("Program", false);
     this.pointer = this.root;
 
-    Node end = new Node("$", false);
+    SemanticNode end = new SemanticNode("$", false);
     this.stack.push(end);
     this.stack.push(this.root);
   }
@@ -42,7 +42,7 @@ public class Parser2Tree {
       // ========== ========== ========== ========== ========== ========== ========== ==========
       // 栈顶节点是语义动作节点
       if (this.stack.peek().action) {
-        Node action = this.stack.pop();
+        SemanticNode action = this.stack.pop();
         String function = action.data.replaceAll("[{}]", "");
         try {
           Action.function.get(function).invoke(Action.class, action);
@@ -55,7 +55,7 @@ public class Parser2Tree {
 
       String token = this.tokenData.get(index).get(2);
       if (top.equals(token)) { // 栈顶终结符与输入相同
-        Node terminal = this.stack.pop();
+        SemanticNode terminal = this.stack.pop();
 
         terminal.generated = true; // 修改: 终结符也需扩展
         pointer2Next(); // 改变指针
@@ -83,7 +83,7 @@ public class Parser2Tree {
             error(2);
           }
         } else if (production.equals("ε")) {
-          Node node = new Node("ε", true);
+          SemanticNode node = new SemanticNode("ε", true);
           node.generated = true;
 
           this.pointer.children.add(node);
@@ -99,21 +99,21 @@ public class Parser2Tree {
           // 存产生式
           String[] symbols = production.split(" ");
           // 存该生成式扩展的Node
-          List<Node> temp = new ArrayList<>();
+          List<SemanticNode> temp = new ArrayList<>();
 
           // 存树
           for (String symbol : symbols) {
-            Node node;
+            SemanticNode node;
             // ========== ========== ========== ========== ========== ========== ==========
             // 生成语义动作节点
             if (symbol.contains("{") && symbol.contains("}")) {
-              node = new Node(symbol);
+              node = new SemanticNode(symbol);
             }
             // ========== ========== ========== ========== ========== ========== ==========
             else if (this.semanticConverter.nonterminals.contains(symbol)) {
-              node = new Node(symbol, false);
+              node = new SemanticNode(symbol, false);
             } else {
-              node = new Node(symbol, true);
+              node = new SemanticNode(symbol, true);
             }
             this.pointer.children.add(node);
             node.parrent = this.pointer;
@@ -142,7 +142,7 @@ public class Parser2Tree {
   // 指针指向下一个可扩展节点
   private void pointer2Next() {
     // 子节点有非终结符 可扩展
-    for (Node node : this.pointer.children) {
+    for (SemanticNode node : this.pointer.children) {
       // if (!node.terminal && !node.generated) {
       if (!node.generated) { // 修改: 终结符也需扩展
         this.pointer = node;
@@ -156,14 +156,14 @@ public class Parser2Tree {
     traverse(this.root);
   }
 
-  private boolean traverse(Node parrent) {
+  private boolean traverse(SemanticNode parrent) {
     // if (!parrent.terminal && !parrent.generated) {
     if (!parrent.generated) { // 修改: 终结符也需扩展 // <NOTICE> 终结符扩展未使用 日后可用于添加新功能
       this.pointer = parrent;
       return true;
     }
 
-    for (Node node : parrent.children) {
+    for (SemanticNode node : parrent.children) {
       if (traverse(node)) {
         return true;
       }
@@ -175,7 +175,7 @@ public class Parser2Tree {
   public void error(int type) {
     Vector<String> errorLine = new Vector<String>();
 
-    Node errorNode;
+    SemanticNode errorNode;
     String errorInfo;
 
     if (type == 1) {
@@ -189,14 +189,14 @@ public class Parser2Tree {
 
       errorLine.add(this.tokenData.get(this.index).get(0)); // 行号
       errorLine.add(this.tokenData.get(this.index).get(1)); // 错误项
-      errorInfo = ErrorInfo.message.get(errorNode.data);
+      errorInfo = SemanticErrorInfo.message.get(errorNode.data);
     } else if (type == 2) {
       System.err.println("PANIC: 忽略输入符号");
       errorNode = this.stack.peek();
 
       errorLine.add(this.tokenData.get(this.index).get(0)); // 行号
       errorLine.add(this.tokenData.get(this.index).get(1)); // 错误项
-      errorInfo = ErrorInfo.message.get(errorNode.data);
+      errorInfo = SemanticErrorInfo.message.get(errorNode.data);
 
       this.index++;
     } else if (type == 0) {
@@ -210,8 +210,8 @@ public class Parser2Tree {
 
       errorLine.add(this.tokenData.get(this.index - 1).get(0)); // 行号
       errorLine.add(this.tokenData.get(this.index - 1).get(1)); // 错误项
-      errorInfo = "缺少终结符: " + (ErrorInfo.operations.get(errorNode.data) == null ? errorNode.data
-          : ErrorInfo.operations.get(errorNode.data));
+      errorInfo = "缺少终结符: " + (SemanticErrorInfo.operations.get(errorNode.data) == null ? errorNode.data
+          : SemanticErrorInfo.operations.get(errorNode.data));
     } else { // type == 3
       errorLine.add(this.tokenData.get(this.index - 1).get(0));
       errorLine.add(this.tokenData.get(this.index - 1).get(1));
@@ -224,7 +224,7 @@ public class Parser2Tree {
     this.errorData.add(errorLine);
   }
 
-  public Node getRoot() {
+  public SemanticNode getRoot() {
     return this.root;
   }
 

@@ -16,17 +16,17 @@ public class Action {
   public static Map<String, Method> function = new HashMap<>(); // String -> Method
   static {
     try {
-      function.put("init", Action.class.getMethod("init", Node.class));
-      function.put("varDecl", Action.class.getMethod("varDecl", Node.class));
-      function.put("varType1", Action.class.getMethod("varType1", Node.class));
-      function.put("varType2", Action.class.getMethod("varType2", Node.class));
-      function.put("varContDecl", Action.class.getMethod("varContDecl", Node.class));
-      function.put("varDeclAssi", Action.class.getMethod("varDeclAssi", Node.class));
-      function.put("varInt", Action.class.getMethod("varInt", Node.class));
-      function.put("varFloat", Action.class.getMethod("varFloat", Node.class));
-      function.put("varChar", Action.class.getMethod("varChar", Node.class));
-      function.put("varArray", Action.class.getMethod("varArray", Node.class));
-      function.put("varEnd", Action.class.getMethod("varEnd", Node.class));
+      function.put("init", Action.class.getMethod("init", SemanticNode.class));
+      function.put("varDecl", Action.class.getMethod("varDecl", SemanticNode.class));
+      function.put("varType1", Action.class.getMethod("varType1", SemanticNode.class));
+      function.put("varType2", Action.class.getMethod("varType2", SemanticNode.class));
+      function.put("varContDecl", Action.class.getMethod("varContDecl", SemanticNode.class));
+      function.put("varDeclAssi", Action.class.getMethod("varDeclAssi", SemanticNode.class));
+      function.put("varInt", Action.class.getMethod("varInt", SemanticNode.class));
+      function.put("varFloat", Action.class.getMethod("varFloat", SemanticNode.class));
+      function.put("varChar", Action.class.getMethod("varChar", SemanticNode.class));
+      function.put("varArray", Action.class.getMethod("varArray", SemanticNode.class));
+      function.put("varEnd", Action.class.getMethod("varEnd", SemanticNode.class));
     } catch (NoSuchMethodException | SecurityException e) {
       e.printStackTrace();
     }
@@ -38,7 +38,7 @@ public class Action {
 
   // 程序入口初始化
   // Program -> {offset=0} P
-  public static void init(Node node) {
+  public static void init(SemanticNode node) {
     offset = 0;
     System.out.println("init");
     System.out.println(node.data);
@@ -50,59 +50,59 @@ public class Action {
 
   // 变量声明
   // D -> T idn {enter(idn.lexeme,T.type,offset); offset=offset+T.width} A ;
-  public static void varDecl(Node node) {
+  public static void varDecl(SemanticNode node) {
 
   }
 
   // 变量类型
   // T -> X {t=X.type; w=X.width} C {T.type=C.type; T.width=C.width}
-  public static void varType1(Node node) {
+  public static void varType1(SemanticNode node) {
 
   }
 
-  public static void varType2(Node node) {
+  public static void varType2(SemanticNode node) {
 
   }
 
   // 变量连续声明
   // A -> , idn {enter(idn.lexeme,T.type,offset); offset=offset+T.width)} A
-  public static void varContDecl(Node node) {
+  public static void varContDecl(SemanticNode node) {
 
   }
 
   // 变量声明赋值
   // A -> = G {gen(id'='D.addr)}
-  public static void varDeclAssi(Node node) {
+  public static void varDeclAssi(SemanticNode node) {
 
   }
 
   // 基本变量类型 int
   // X -> int {X.type=int; X.width=4}
-  public static void varInt(Node node) {
+  public static void varInt(SemanticNode node) {
 
   }
 
   // 基本变量类型 int
   // X -> float {X.type=int; X.width=4}
-  public static void varFloat(Node node) {
+  public static void varFloat(SemanticNode node) {
 
   }
 
   // 基本变量类型 int
   // X -> char {X.type=int; X.width=4}
-  public static void varChar(Node node) {
+  public static void varChar(SemanticNode node) {
 
   }
 
   // 声明数组类型
   // C -> [ cst ] C {C.type=array(num.val,C.type); C.width=num.val*C.width}
-  public static void varArray(Node node) {
+  public static void varArray(SemanticNode node) {
 
   }
 
   // 变量声明结束
   // C -> ε {C.type=t; C.width=w}
-  public static void varEnd(Node node) {
+  public static void varEnd(SemanticNode node) {
 
   }
 

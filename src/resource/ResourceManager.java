@@ -14,6 +14,9 @@ import jxl.write.WritableWorkbook;
 import lexical.Dfa;
 import lexical.Dfa2Token;
 import lexical.Nfa;
+import semantic.SemanticConverter;
+import semantic.SemanticNode;
+import semantic.SemanticParser2Tree;
 import syntax.Node;
 import syntax.Parser2Tree;
 import syntax.SyntaxConverter;
@@ -57,11 +60,18 @@ public class ResourceManager {
   public static Vector<Vector<String>> SyntaxErrordata = new Vector<Vector<String>>();
   public static Vector<String> SyntaxErrordataTitle =
       new Vector<String>(Arrays.asList("行号", "错误项", "错误信息"));
+  
+  //语义分析错误存放此处
+  public static Vector<Vector<String>> SemanticErrordata = new Vector<Vector<String>>();
+  public static Vector<String> SemanticErrordataTitle =
+      new Vector<String>(Arrays.asList("行号", "错误项", "错误信息"));
 
   // 存储语法分析树结构根节点
-  public static Node treeRoot;
+  public static Node syntaxRoot;
+  public static SemanticNode semanticRoot;
 
   private static SyntaxConverter syntaxConverter;
+  private static SemanticConverter semanticConverter;
 
   public static void NFAexcel_reader(File excel) {
     int columnCount;
@@ -138,7 +148,7 @@ public class ResourceManager {
     }
   }
 
-  public static void LLexcel_reader(File excel) {
+  public static void syntax_LLexcel_reader(File excel) {
     int columnCount;
     int rowCount;
     Sheet sheet;
@@ -176,9 +186,50 @@ public class ResourceManager {
       e.printStackTrace();
     }
 
-    syntaxConvert();
+    syntaxConvert(); 
   }
 
+  public static void semantic_LLexcel_reader(File excel) {
+	    int columnCount;
+	    int rowCount;
+	    Sheet sheet;
+	    Workbook book;
+	    Cell cell;
+	    LLanalysisdata = new Vector<Vector<String>>();
+	    LLanalysisdataTitle = new Vector<String>();
+	    try {
+	      book = Workbook.getWorkbook(excel);
+
+	      // 获得第一个工作表对象(excel中sheet的编号从0开始,0,1,2,3,....)
+	      sheet = book.getSheet(0);
+
+	      // 获取行数与列数
+	      columnCount = sheet.getColumns();
+	      rowCount = sheet.getRows();
+
+	      // 得到DFAdataTitle
+	      for (int i = 0; i < columnCount; i++) {
+	        cell = sheet.getCell(i, 0);
+	        LLanalysisdataTitle.add(cell.getContents());
+	      }
+
+	      for (int j = 1; j < rowCount; j++) {
+	        Vector<String> tempRow = new Vector<String>();
+	        // 循环读取
+	        for (int k = 0; k < columnCount; k++) {
+	          cell = sheet.getCell(k, j);
+	          tempRow.add(cell.getContents());
+	        }
+	        LLanalysisdata.add(tempRow);
+	      }
+	      book.close();
+	    } catch (Exception e) {
+	      e.printStackTrace();
+	    }
+
+	    semanticConvert();
+	  }
+  
   private static Vector<Vector<String>> autoLexical(String text) {
     String dfaPath = System.getProperty("user.dir") + "\\res\\DFA.xls";
     File dfaXls = new File(dfaPath);
@@ -195,7 +246,7 @@ public class ResourceManager {
     Vector<Vector<String>> tokenData = autoLexical(text);
     Parser2Tree p2t = new Parser2Tree(syntaxConverter, tokenData);
     p2t.analysis();
-    treeRoot = p2t.getRoot();
+    syntaxRoot = p2t.getRoot();
     SyntaxErrordata = p2t.getErrorData();
   }
 
@@ -206,6 +257,31 @@ public class ResourceManager {
     Selectdata = syntaxConverter.getSelectData();
     LLanalysisdataTitle = syntaxConverter.getLLanalysisTitle();
     LLanalysisdata = syntaxConverter.getLLanalysisData();
+
+    // exportExcel(FirstFollowdataTitle, FirstFollowdata,
+    // System.getProperty("user.dir") + "\\res\\FirstFollow.xls");
+    // exportExcel(SelectdataTitle, Selectdata, System.getProperty("user.dir") +
+    // "\\res\\Select.xls");
+    // exportExcel(LLanalysisdataTitle, LLanalysisdata,
+    // System.getProperty("user.dir") + "\\res\\Parser.xls");
+  }
+  
+  //根据已有的Parser预测分析表和代码文件得出语法树并存放
+  public static void semanticAnalysis(String text) {
+    Vector<Vector<String>> tokenData = autoLexical(text);
+    SemanticParser2Tree p2t = new SemanticParser2Tree(semanticConverter, tokenData);
+    p2t.analysis();
+    semanticRoot = p2t.getRoot(); 
+    SemanticErrordata = p2t.getErrorData();
+  }
+
+  // Syntax转为Parser
+  public static void semanticConvert() {
+    semanticConverter = new SemanticConverter(LLanalysisdataTitle, LLanalysisdata);
+    FirstFollowdata = semanticConverter.getFirstFollowData();
+    Selectdata = semanticConverter.getSelectData();
+    LLanalysisdataTitle = semanticConverter.getLLanalysisTitle();
+    LLanalysisdata = semanticConverter.getLLanalysisData();
 
     // exportExcel(FirstFollowdataTitle, FirstFollowdata,
     // System.getProperty("user.dir") + "\\res\\FirstFollow.xls");

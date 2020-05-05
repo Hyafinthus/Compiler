@@ -1,4 +1,4 @@
- package gui;
+package gui;
 
 import java.util.List;
 import javax.swing.JFrame;
@@ -12,9 +12,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import resource.ResourceManager;
-import syntax.Node;
 
-public class SyntaxResultGui extends JFrame {
+public class SemanticResultGui extends JFrame {
 
   private static final long serialVersionUID = -2760753019517809093L;
 
@@ -27,7 +26,7 @@ public class SyntaxResultGui extends JFrame {
   DefaultMutableTreeNode Node;
   DefaultMutableTreeNode temp;
 
-  public SyntaxResultGui() {
+  public SemanticResultGui() {
     // Frame初始化设置
     this.setLayout(null);
     this.setTitle("语法分析结果");
@@ -37,7 +36,7 @@ public class SyntaxResultGui extends JFrame {
     this.setResizable(false);
     this.setVisible(true);
 
-    Node = traverseTree(ResourceManager.syntaxRoot);
+    Node = traverseTree(ResourceManager.semanticRoot);
     newModel = new DefaultTreeModel(Node);
     jTree = new JTree(newModel);
 
@@ -45,7 +44,7 @@ public class SyntaxResultGui extends JFrame {
     this.jsp1.setBounds(30, 30, 500, 700);
     this.add(jsp1);
     
-    this.jt2 = new JTable(ResourceManager.SyntaxErrordata, ResourceManager.SyntaxErrordataTitle);
+    this.jt2 = new JTable(ResourceManager.SemanticErrordata, ResourceManager.SemanticErrordataTitle);
     setTableFormat(this.jt2);
     this.jta2 = new JTextArea();
     this.jsp2 = new JScrollPane(jta2);
@@ -54,17 +53,17 @@ public class SyntaxResultGui extends JFrame {
     this.add(jsp2);
   }
 
-  private DefaultMutableTreeNode traverseTree(Node node) {
+  private DefaultMutableTreeNode traverseTree(semantic.SemanticNode node) {
     DefaultMutableTreeNode parrent = new DefaultMutableTreeNode(node.data);
 
     if (node != null) {
-      List<Node> children = node.children;
+      List<semantic.SemanticNode> children = node.children;
       if (node.terminal) { // 如果是叶节点（终结符）
         DefaultMutableTreeNode dn = new DefaultMutableTreeNode(
             node.data.equals("ε") ? node.data : (node.data + ": " + node.word));
         return dn;
       } else { // 如果是非叶节点（非终结符）
-        for (Node tempNode : children) {
+        for (semantic.SemanticNode tempNode : children) {
           parrent.add(traverseTree(tempNode));
         }
       }
