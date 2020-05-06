@@ -12,7 +12,7 @@ import java.util.Vector;
 // 静态类 每个语义动作对应一个函数
 public class Action {
   public static int offset; // 偏移量
-  public static int index = 1; // 三地址序号
+  public static int index = 0; // 三地址序号
 
   // 符号表: lineIndex idn type offset
   public static Vector<Vector<String>> symbol = new Vector<>();
@@ -233,6 +233,7 @@ public class Action {
  public static void ctrlTestBt(SemanticNode node) {
    SemanticNode BNode = node.parrent;
    BNode.attr.put("truelist", String.valueOf(index));
+   BNode.attr.put("falselist", "");
    Vector<String> line = new Vector<String>();
    line.add(BNode.children.get(0).lineIndex);
    line.add(String.valueOf(index));
@@ -245,6 +246,7 @@ public class Action {
  public static void ctrlTestBf(SemanticNode node) {
    SemanticNode BNode = node.parrent;
    BNode.attr.put("falselist", String.valueOf(index));
+   BNode.attr.put("truelist", "");
    Vector<String> line = new Vector<String>();
    line.add(BNode.children.get(0).lineIndex);
    line.add(String.valueOf(index));
@@ -264,11 +266,13 @@ public class Action {
  
  public static void ctrlBackPatch(Set<String> list,String quad){
    for (String str:list) {
-     String tac = intermediate.get(Integer.parseInt(str)).get(2);
-     intermediate.get(Integer.parseInt(str)).set(2,tac+quad);
-     String fte = intermediate.get(Integer.parseInt(str)).get(3);
-     fte = fte.substring(0,fte.length()-1);
-     intermediate.get(Integer.parseInt(str)).set(3,fte+quad+")");
+     if(str.length()>0) {
+       String tac = intermediate.get(Integer.parseInt(str)).get(2);
+       intermediate.get(Integer.parseInt(str)).set(2,tac+quad);
+       String fte = intermediate.get(Integer.parseInt(str)).get(3);
+       fte = fte.substring(0,fte.length()-1);
+       intermediate.get(Integer.parseInt(str)).set(3,fte+quad+")");
+     }
    }
  }
  
