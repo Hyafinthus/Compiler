@@ -64,8 +64,13 @@ public class SemanticConverter {
         
         actionRightPart.add(xlsTitle.get(i));
         if(!xlsTitle.get(i).contains("{")) {
-          rightPart.add(xlsTitle.get(i));
-          terminals.add(xlsTitle.get(i));
+          if(xlsTitle.get(i).contains("true")||xlsTitle.get(i).contains("false")) {
+            rightPart.add(xlsTitle.get(i).toUpperCase());
+            terminals.add(xlsTitle.get(i).toUpperCase());
+          } else {
+            rightPart.add(xlsTitle.get(i));
+            terminals.add(xlsTitle.get(i));
+          }
         }
       }
     }
@@ -82,8 +87,13 @@ public class SemanticConverter {
         if (line.get(i).length() > 0) {
           actionRightPart.add(line.get(i));
           if(!line.get(i).contains("{")) {
-            rightPart.add(line.get(i));
-            terminals.add(line.get(i));
+            if(line.get(i).contains("true")||line.get(i).contains("false")) {
+              rightPart.add(line.get(i).toUpperCase());
+              terminals.add(line.get(i).toUpperCase());
+            } else {
+              rightPart.add(line.get(i));
+              terminals.add(line.get(i));
+              }
           }
         }
       }
@@ -105,7 +115,6 @@ public class SemanticConverter {
     while (!isDoneFirst) {
       isDoneFirst = true;
       for (Production p : productions) {
-        System.out.println(p);
         if (!nonterminals.contains(p.rightPart.get(0))) {
           // 加进新符号就说明还未结束
           if (!firstMap.get(p.leftPart).contains(p.rightPart.get(0))) {
@@ -309,7 +318,8 @@ public class SemanticConverter {
   public Vector<String> getLLanalysisTitle() {
     analysisTitle.add("");
     for (String str : terminals) {
-      analysisTitle.add(str);
+      if(str.equals("false")||str.equals("true")) analysisTitle.add(str.toUpperCase());
+      else analysisTitle.add(str);
     }
     analysisTitle.add("$");
     return analysisTitle;
@@ -328,7 +338,8 @@ public class SemanticConverter {
           int pIndex = productions.indexOf(p);
           Production ap = actionProductions.get(pIndex);
           if (p.getLeftPart().equals(nt) && selectMap.get(p).contains(analysisTitle.get(i))) {
-            line.add(ap.toString());
+            if(ap.toString().contains("false")||ap.toString().contains("true")) line.add(ap.toString().toUpperCase());
+            else line.add(ap.toString());
             notNull = true;
             break;
           }
