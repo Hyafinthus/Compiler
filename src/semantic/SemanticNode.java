@@ -17,10 +17,12 @@ public class SemanticNode {
   public SemanticNode parrent;
   public List<SemanticNode> children = new ArrayList<>();
 
-  // ========== ========== ========== ========== ========== ========== ========== ==========
+  // ========== ========== ========== ========== ========== ========== ==========
+  // 行号
+  public String lineIndex;
   // 是语义动作
   public boolean action = false;
-  //节点属性
+  // 节点属性
   public Map<String, String> attr = new HashMap<>();
 
   public SemanticNode(String data) {
@@ -28,7 +30,11 @@ public class SemanticNode {
     this.action = true;
     this.generated = true;
   }
-  // ========== ========== ========== ========== ========== ========== ========== ==========
+
+  public void setLineIndex(String lineIndex) {
+    this.lineIndex = lineIndex;
+  }
+  // ========== ========== ========== ========== ========== ========== ==========
 
   public SemanticNode(String data, boolean terminal) {
     this.data = data;

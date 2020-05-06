@@ -24,7 +24,8 @@ public class SemanticParser2Tree {
   // 错误信息
   private Vector<Vector<String>> errorData = new Vector<>();
 
-  public SemanticParser2Tree(SemanticConverter semanticConverter, Vector<Vector<String>> tokenData) {
+  public SemanticParser2Tree(SemanticConverter semanticConverter,
+      Vector<Vector<String>> tokenData) {
     this.semanticConverter = semanticConverter;
     this.tokenData = tokenData;
 
@@ -39,7 +40,7 @@ public class SemanticParser2Tree {
   public void analysis() {
     String top = this.stack.peek().data;
     while (!top.equals("$") && this.index < this.tokenData.size()) {
-      // ========== ========== ========== ========== ========== ========== ========== ==========
+      // ========== ========== ========== ========== ========== ========== ==========
       // 栈顶节点是语义动作节点
       if (this.stack.peek().action) {
         SemanticNode action = this.stack.pop();
@@ -49,9 +50,10 @@ public class SemanticParser2Tree {
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
           e.printStackTrace();
         }
+        top = this.stack.peek().data;
         continue;
       }
-      // ========== ========== ========== ========== ========== ========== ========== ==========
+      // ========== ========== ========== ========== ========== ========== ==========
 
       String token = this.tokenData.get(index).get(2);
       if (top.equals(token)) { // 栈顶终结符与输入相同
@@ -61,6 +63,7 @@ public class SemanticParser2Tree {
         pointer2Next(); // 改变指针
 
         terminal.setWord(this.tokenData.get(index).get(1)); // 为终结符赋值
+        terminal.setLineIndex(this.tokenData.get(index).get(0)); // 为终结符加行号
         this.index++;
       } else if (!this.semanticConverter.nonterminals.contains(top)) {
         error(0); // 栈顶终结符与输入不符
@@ -82,20 +85,23 @@ public class SemanticParser2Tree {
           } else {
             error(2);
           }
-        } else if (production.equals("ε")) {
-          SemanticNode node = new SemanticNode("ε", true);
-          node.generated = true;
-
-          this.pointer.children.add(node);
-          node.parrent = this.pointer;
-
-          // 已扩展
-          this.pointer.generated = true;
-          // 改变指针
-          pointer2Next();
-          // 弹栈
-          this.stack.pop();
-        } else { // 正确
+        }
+        // 空产生式可能包含语义动作
+        // else if (production.equals("ε")) {
+        // SemanticNode node = new SemanticNode("ε", true);
+        // node.generated = true;
+        //
+        // this.pointer.children.add(node);
+        // node.parrent = this.pointer;
+        //
+        // // 已扩展
+        // this.pointer.generated = true;
+        // // 改变指针
+        // pointer2Next();
+        // // 弹栈
+        // this.stack.pop();
+        // }
+        else { // 正确
           // 存产生式
           String[] symbols = production.split(" ");
           // 存该生成式扩展的Node
@@ -106,6 +112,14 @@ public class SemanticParser2Tree {
             SemanticNode node;
             // ========== ========== ========== ========== ========== ========== ==========
             // 生成语义动作节点
+            if (symbol.equals("ε")) {
+              node = new SemanticNode("ε", true);
+              node.generated = true;
+              this.pointer.children.add(node);
+              node.parrent = this.pointer;
+              continue;
+            }
+
             if (symbol.contains("{") && symbol.contains("}")) {
               node = new SemanticNode(symbol);
             }
@@ -210,8 +224,9 @@ public class SemanticParser2Tree {
 
       errorLine.add(this.tokenData.get(this.index - 1).get(0)); // 行号
       errorLine.add(this.tokenData.get(this.index - 1).get(1)); // 错误项
-      errorInfo = "缺少终结符: " + (SemanticErrorInfo.operations.get(errorNode.data) == null ? errorNode.data
-          : SemanticErrorInfo.operations.get(errorNode.data));
+      errorInfo =
+          "缺少终结符: " + (SemanticErrorInfo.operations.get(errorNode.data) == null ? errorNode.data
+              : SemanticErrorInfo.operations.get(errorNode.data));
     } else { // type == 3
       errorLine.add(this.tokenData.get(this.index - 1).get(0));
       errorLine.add(this.tokenData.get(this.index - 1).get(1));
