@@ -35,6 +35,12 @@ public class Action {
       function.put("var_end", Action.class.getMethod("varEnd", SemanticNode.class));
       function.put("back_m", Action.class.getMethod("backM", SemanticNode.class));
       function.put("back_n", Action.class.getMethod("backN", SemanticNode.class));
+      function.put("ctrl_testS", Action.class.getMethod("ctrlTestS", SemanticNode.class));
+      function.put("ctrl_testBt", Action.class.getMethod("ctrlTestBt", SemanticNode.class));
+      function.put("ctrl_testBf", Action.class.getMethod("ctrlTestBf", SemanticNode.class));
+      function.put("ctrl_if", Action.class.getMethod("ctrlIf", SemanticNode.class));
+      function.put("ctrl_p", Action.class.getMethod("ctrlP", SemanticNode.class));
+      function.put("ctrl_np", Action.class.getMethod("ctrlNp", SemanticNode.class));
     } catch (NoSuchMethodException | SecurityException e) {
       e.printStackTrace();
     }
@@ -297,6 +303,25 @@ public class Action {
    ctrlBackPatch(BfalseList,K2Node.attr.get("quad"));
  }
  
+  // 处理S的递归生成
+  // P -> S K P1 {P.nextlist = P1.nextlist; backpatch(S.nextlist,K.quad);}
+  public static void ctrlP(SemanticNode node) {
+    SemanticNode PNode = node.parrent;
+    SemanticNode SNode = PNode.children.get(0);
+    SemanticNode KNode = PNode.children.get(1);
+    SemanticNode P1Node = PNode.children.get(2);
+    String nextListStr = P1Node.attr.get("nextlist");
+    HashSet<String> SnextList = new HashSet<String>();
+    SnextList.addAll(ctrlGetList(SNode, "nextlist"));
+    PNode.attr.put("nextlist",nextListStr);
+    ctrlBackPatch(SnextList,KNode.attr.get("quad"));
+  }
  
+  //处理P的空转移事件
+  // P -> ε{P.nextlist = null}
+  public static void ctrlNp(SemanticNode node) {
+   SemanticNode PNode = node.parrent;
+   PNode.attr.put("nextlist","");
+  }
   
 }

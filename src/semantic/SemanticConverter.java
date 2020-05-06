@@ -338,8 +338,18 @@ public class SemanticConverter {
           int pIndex = productions.indexOf(p);
           Production ap = actionProductions.get(pIndex);
           if (p.getLeftPart().equals(nt) && selectMap.get(p).contains(analysisTitle.get(i))) {
-            if(ap.toString().contains("false")||ap.toString().contains("true")) line.add(ap.toString().toUpperCase());
-            else line.add(ap.toString());
+            if(ap.toString().contains("false")) {
+              int begin = ap.toString().indexOf("false");
+              String newContent = ap.toString().substring(0, begin)+ap.toString().substring(begin,begin+5).toUpperCase()+ap.toString().substring(begin+5);
+              line.add(newContent);
+              
+            } else if(ap.toString().contains("true")) {
+              int begin = ap.toString().indexOf("true");
+              String newContent = ap.toString().substring(0, begin)+ap.toString().substring(begin,begin+4).toUpperCase()+ap.toString().substring(begin+4);
+              line.add(newContent);
+            } else {
+              line.add(ap.toString());
+            }
             notNull = true;
             break;
           }
