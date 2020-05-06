@@ -27,6 +27,7 @@ public class Action {
       function.put("varChar", Action.class.getMethod("varChar", SemanticNode.class));
       function.put("varArray", Action.class.getMethod("varArray", SemanticNode.class));
       function.put("varEnd", Action.class.getMethod("varEnd", SemanticNode.class));
+      function.put("backM", Action.class.getMethod("backM", SemanticNode.class));
     } catch (NoSuchMethodException | SecurityException e) {
       e.printStackTrace();
     }
@@ -109,5 +110,24 @@ public class Action {
   // ========== ========== ========== ========== ========== ========== ========== ==========
   // ========== ========== ========== ========== ========== ========== ========== hanghang
   // ========== ========== ========== ========== ========== ========== ========== ==========
+  
+  // 回填辅助非终结符K（M）的空转移动作
+  // K -> ε {K.quad = nextquad;}
+  public static void backM(SemanticNode node) {
+    int nextQuad = intermediate.size()-1;
+    node.attr.put("quad",String.valueOf(nextQuad));
+  }
+  
+ // 回填辅助非终结符O（N）的空转移动作
+ // O -> ε { O.nextlist = makelist(nextquad);gen(‘goto _’);}
 
+ public static void backN(SemanticNode node) {
+   int nextQuad = intermediate.size()-1;
+   node.attr.put("nextlist",String.valueOf(nextQuad));
+   Vector<String> line = new Vector<String>();
+   line.add(String.valueOf(nextQuad));
+   line.add("goto ");
+   line.add("(j, _, _, )");
+ }
+  
 }
