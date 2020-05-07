@@ -12,19 +12,15 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import resource.ResourceManager;
+import semantic.Action;
 
 public class SemanticResultGui extends JFrame {
 
   private static final long serialVersionUID = -2760753019517809093L;
 
-  JTextArea jta2; // 定义文本域
-  JScrollPane jsp1, jsp2;// 定义文本域对应的滚动条
-  JTable jt2;// 错误信息表格
-  JTree jTree;
-
-  DefaultTreeModel newModel;
-  DefaultMutableTreeNode Node;
-  DefaultMutableTreeNode temp;
+  JTextArea jta1, jta2, jta3; // 定义文本域
+  JScrollPane jsp1, jsp2, jsp3;// 定义文本域对应的滚动条
+  JTable jt1, jt2, jt3;// 错误信息表格
 
   public SemanticResultGui() {
     // Frame初始化设置
@@ -36,41 +32,31 @@ public class SemanticResultGui extends JFrame {
     this.setResizable(false);
     this.setVisible(true);
 
-    Node = traverseTree(ResourceManager.semanticRoot);
-    newModel = new DefaultTreeModel(Node);
-    jTree = new JTree(newModel);
-
-    this.jsp1 = new JScrollPane(jTree);
-    this.jsp1.setBounds(30, 30, 500, 700);
+    this.jt1 = new JTable(Action.symbol, ResourceManager.SemanticSymboldataTitle);
+    setTableFormat(this.jt1);
+    this.jta1 = new JTextArea();
+    this.jsp1 = new JScrollPane(jta1);
+    this.jsp1.setBounds(20, 30, 330, 700);
+    this.jsp1.setViewportView(jt1);
     this.add(jsp1);
     
-    this.jt2 = new JTable(ResourceManager.SemanticErrordata, ResourceManager.SemanticErrordataTitle);
+    this.jt2 = new JTable(Action.intermediate, ResourceManager.intermediatedataTitle);
     setTableFormat(this.jt2);
     this.jta2 = new JTextArea();
     this.jsp2 = new JScrollPane(jta2);
-    this.jsp2.setBounds(550, 30, 500, 700);
+    this.jsp2.setBounds(370, 30, 330, 700);
     this.jsp2.setViewportView(jt2);
     this.add(jsp2);
+    
+    this.jt3 = new JTable(ResourceManager.SemanticErrordata, ResourceManager.SemanticErrordataTitle);
+    setTableFormat(this.jt3);
+    this.jta3 = new JTextArea();
+    this.jsp3 = new JScrollPane(jta3);
+    this.jsp3.setBounds(720, 30, 330, 700);
+    this.jsp3.setViewportView(jt3);
+    this.add(jsp3);
   }
 
-  private DefaultMutableTreeNode traverseTree(semantic.SemanticNode node) {
-    DefaultMutableTreeNode parrent = new DefaultMutableTreeNode(node.data);
-
-    if (node != null) {
-      List<semantic.SemanticNode> children = node.children;
-      if (node.terminal) { // 如果是叶节点（终结符）
-        DefaultMutableTreeNode dn = new DefaultMutableTreeNode(
-            node.data.equals("ε") ? node.data : (node.data + ": " + node.word));
-        return dn;
-      } else { // 如果是非叶节点（非终结符）
-        for (semantic.SemanticNode tempNode : children) {
-          parrent.add(traverseTree(tempNode));
-        }
-      }
-    }
-
-    return parrent;
-  }
 
   private void setTableFormat(JTable table) {
 	    table.setRowHeight(25);
