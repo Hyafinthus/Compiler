@@ -34,6 +34,10 @@ public class Action {
       function.put("init", Action.class.getMethod("init", SemanticNode.class));
       // 变量声明
       function.put("var_decl", Action.class.getMethod("varDecl", SemanticNode.class));
+      function.put("var_record", Action.class.getMethod("varRecord", SemanticNode.class));
+      function.put("var_proc", Action.class.getMethod("varProc", SemanticNode.class));
+      function.put("var_param", Action.class.getMethod("varParam", SemanticNode.class));
+      function.put("var_cont_param", Action.class.getMethod("varContParam", SemanticNode.class));
       function.put("var_type1", Action.class.getMethod("varType1", SemanticNode.class));
       function.put("var_type2", Action.class.getMethod("varType2", SemanticNode.class));
       function.put("var_cont_decl", Action.class.getMethod("varContDecl", SemanticNode.class));
@@ -142,6 +146,49 @@ public class Action {
     enter(idn.lineIndex, idn.word, T.attr.get("type"));
     Action.idn.add(idn); // *最近的idn存储temp
     offset += Integer.valueOf(T.attr.get("width"));
+  }
+
+  // 变量类型record
+  // D -> record idn {enter(idn.word,record,offset)} { P }
+  public static void varRecord(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode record = parent.children.get(0);
+    SemanticNode idn = parent.children.get(1);
+
+    enter(record.lineIndex, idn.word, "record");
+  }
+
+  // 变量类型proc
+  // D -> proc X idn {enter(idn.word,record:X.type,offset)} ( M ) { P }
+  public static void varProc(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode proc = parent.children.get(0);
+    SemanticNode X = parent.children.get(1);
+    SemanticNode idn = parent.children.get(2);
+
+    enter(proc.lineIndex, idn.word, "proc:" + X.attr.get("type"));
+  }
+
+  // 参数声明
+  // M -> X idn {enter(idn.word,X.type,offset); offset=offset+X.width} M'
+  public static void varParam(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode X = parent.children.get(0);
+    SemanticNode idn = parent.children.get(1);
+
+    enter(idn.lineIndex, idn.word, X.attr.get("type"));
+    offset += Integer.valueOf(X.attr.get("width"));
+  }
+
+  // 参数连续声明
+  // M' -> , X idn {enter(idn.word,X.type,offset); offset=offset+X.width} M'
+  public static void varContParam(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode X = parent.children.get(1);
+    SemanticNode idn = parent.children.get(2);
+
+    enter(idn.lineIndex, idn.word, X.attr.get("type"));
+    offset += Integer.valueOf(X.attr.get("width"));
   }
 
   // 变量类型
@@ -449,7 +496,7 @@ public class Action {
   }
 
   // ========== ========== ========== ========== ========== ========== ========== ==========
-  // ========== ========== ========== ========== ========== ========== ========== hanghang
+  // ========== ========== ========== ========== ========== ========== ========== 控制流
   // ========== ========== ========== ========== ========== ========== ========== ==========
 
   // 回填辅助非终结符K（M）的空转移动作
