@@ -31,6 +31,21 @@ public class Action {
       function.put("var_char", Action.class.getMethod("varChar", SemanticNode.class));
       function.put("var_array", Action.class.getMethod("varArray", SemanticNode.class));
       function.put("var_end", Action.class.getMethod("varEnd", SemanticNode.class));
+      
+      function.put("inherit_H_node", Action.class.getMethod("inheritHNode", SemanticNode.class));
+      function.put("get_list", Action.class.getMethod("getList", SemanticNode.class));
+      function.put("bool_not", Action.class.getMethod("boolNot", SemanticNode.class));
+      function.put("bool_or", Action.class.getMethod("boolOr", SemanticNode.class));
+      function.put("bool_and", Action.class.getMethod("boolAnd", SemanticNode.class));
+      function.put("bool_null", Action.class.getMethod("boolNull", SemanticNode.class));
+      function.put("add_parentheses", Action.class.getMethod("addParentheses", SemanticNode.class));
+      function.put("make_relop_list", Action.class.getMethod("makeRelopList", SemanticNode.class));
+      function.put("make_true_list", Action.class.getMethod("makeTrueList", SemanticNode.class));
+      function.put("make_false_list", Action.class.getMethod("makeFalseList", SemanticNode.class));
+      function.put("get_next_quad", Action.class.getMethod("getNextQuad", SemanticNode.class));
+      function.put("call_function", Action.class.getMethod("callFunction", SemanticNode.class));
+      function.put("initialize_queue", Action.class.getMethod("initializeQueue", SemanticNode.class));
+      function.put("add_parameter", Action.class.getMethod("addParameter", SemanticNode.class));
     } catch (NoSuchMethodException | SecurityException e) {
       e.printStackTrace();
     }
@@ -189,4 +204,93 @@ public class Action {
   // ========== ========== ========== ========== ========== ========== ========== hanghang
   // ========== ========== ========== ========== ========== ========== ========== ==========
 
+  
+  
+  //========== ========== ========== ========== ========== ========== ========== ==========
+  // ========== ========== ========== ========== ========== ========== ========== pipixia
+  // ========== ========== ========== ========== ========== ========== ========== ==========
+  
+  //B'继承兄弟节点H的list
+  //…………H {B'.exttruelist = H.truelist; B'.exttruelist = H.truelist} B'
+  public static void inheritHNode(SemanticNode node) {
+	  System.out.println("inheritHNode");
+  }
+  
+  //B获得子节点B'的list
+  //B -> H B'{B.truelist = B'.truelist; B.falselist = B'.falselist}
+  public static void getList(SemanticNode node) {
+	  System.out.println("getList");
+  }
+  
+  //B为H取反
+  //B -> not H{B.truelist = H.falselist; B.falselist = H.truelist}
+  public static void boolNot(SemanticNode node) {
+	  System.out.println("boolNot");
+  }
+  
+  //布尔语句中or的相关操作
+  //B1' -> logorr Y H B2'{B1'.truelist = merge(B1'.exttruelist, B2'.truelist); B1'.falselist = B2'.falselist; backpatch(B1'.falselist, Y.quad);}
+  public static void boolOr(SemanticNode node) {
+	  System.out.println("boolOr");
+  }
+  
+  //布尔语句中and的相关操作
+  //B1' -> logand Y H B2'{B1'.truelist = B2'.truelist; B1'.falselist = merge(B1'extfalselist, B2'.falselist); backpatch(B1'.truelist, Y.quad);}
+  public static void boolAnd(SemanticNode node) {
+	  System.out.println("boolAnd");
+  }
+  
+  //B'为空时的操作
+  //B' -> ε {B'.truelist = B'.exttruelist; B'.falselist = B'.extfalselist}
+  public static void boolNull(SemanticNode node) {
+	  System.out.println("boolNull");
+  }
+  
+  //通过引入Y来获取下一行的代码标号
+  //Y -> ε{Y.quad = nextquad}
+  public static void getNextQuad(SemanticNode node) {
+	  System.out.println("getNextQuad");
+  }
+  
+  //布尔表达式加上左右括号时的list传递
+  //H -> SLP B SRP{H.truelist = B.truelist; H.falselist = B.falselist}
+  public static void addParentheses(SemanticNode node) {
+	  System.out.println("addParentheses");
+  }
+  
+  //relop表达式的list生成，并传递给H
+  //H -> I relop E {H.truelist = makelist(nextquad); H.falselist = makelist(nextquad+1); gen('if' I.addr relop E.addr 'goto _'); gen('goto _');}
+  public static void makeRelopList(SemanticNode node) {
+	  System.out.println("makeRelopList");
+  }
+  
+  //true的表达式的list生成并传递给H
+  //H -> true {H.truelist = makelist(nextquad); gen('goto _');}
+  public static void makeTrueList(SemanticNode node) {
+	  System.out.println("makeTrueList");
+  }
+  
+  //true的表达式的list生成并传递给H
+  //H -> false {H.falselist = makelist(nextquad); gen('goto _');}
+  public static void makeFalseList(SemanticNode node) {
+	  System.out.println("makeFalseList");
+  }
+  
+  //调用函数
+  //S -> call IDN SLP elist SRP SEM{对队列中每个参数t有gen('param' t); gen('call' IDN.addr ',' number)}
+  public static void callFunction(SemanticNode node) {
+	  System.out.println("callFunction");
+  }
+  
+  //参数队列初始化为只有一个E
+  //Elist -> E Elist'{队列仅包含E.addr}
+  public static void initializeQueue(SemanticNode node) {
+	  System.out.println("initializeQueue");
+  }
+  
+  //参数队列增加参数
+  //Elist -> CMA E Elist'{E.addr 添加到队列队尾}
+  public static void addParameter(SemanticNode node) {
+	  System.out.println("addParameter");
+  }
 }
