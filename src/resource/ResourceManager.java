@@ -62,6 +62,14 @@ public class ResourceManager {
       new Vector<String>(Arrays.asList("行号", "错误项", "错误信息"));
   
   //语义分析错误存放此处
+  public static Vector<String> SemanticSymboldataTitle =
+      new Vector<String>(Arrays.asList("行号", "符号", "类型", "偏移量"));
+  
+  //语义分析错误存放此处
+  public static Vector<String> intermediatedataTitle =
+      new Vector<String>(Arrays.asList("行号", "序号", "三地址指令", "四元式"));
+  
+  //语义分析错误存放此处
   public static Vector<Vector<String>> SemanticErrordata = new Vector<Vector<String>>();
   public static Vector<String> SemanticErrordataTitle =
       new Vector<String>(Arrays.asList("行号", "错误项", "错误信息"));

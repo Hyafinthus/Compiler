@@ -3,24 +3,36 @@ package semantic;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 // 静态类 每个语义动作对应一个函数
 public class Action {
-  public static int offset; // 偏移量
-  public static int index = 1; // 三地址序号
+  public static int offset = 0; // 偏移量
+  public static int index = 0; // 三地址序号
 
   // 符号表: lineIndex idn type offset
   public static Vector<Vector<String>> symbol = new Vector<>();
   // 中间代码: lineIndex index three four
   public static Vector<Vector<String>> intermediate = new Vector<>();
 
+  // addr 声明变量:变量名 临时变量:t+index
+  // 所有声明变量 对应声明Type(数组)
+  public static Map<String, Integer> declVar = new HashMap<>();
+  // 变量对应序号
+  public static Map<String, Integer> idn2Index = new HashMap<>();
+
   public static Map<String, Method> function = new HashMap<>(); // String -> Method
   static {
     try {
+      // 程序入口
       function.put("init", Action.class.getMethod("init", SemanticNode.class));
+      // 变量声明
       function.put("var_decl", Action.class.getMethod("varDecl", SemanticNode.class));
       function.put("var_type1", Action.class.getMethod("varType1", SemanticNode.class));
       function.put("var_type2", Action.class.getMethod("varType2", SemanticNode.class));
@@ -31,8 +43,10 @@ public class Action {
       function.put("var_char", Action.class.getMethod("varChar", SemanticNode.class));
       function.put("var_array", Action.class.getMethod("varArray", SemanticNode.class));
       function.put("var_end", Action.class.getMethod("varEnd", SemanticNode.class));
-      
-      function.put("inherit_H_node", Action.class.getMethod("inheritHNode", SemanticNode.class));
+
+      //布尔表达式
+      function.put("inherit_H_node1", Action.class.getMethod("inheritHNode1", SemanticNode.class));
+      function.put("inherit_H_node2", Action.class.getMethod("inheritHNode2", SemanticNode.class));
       function.put("get_list", Action.class.getMethod("getList", SemanticNode.class));
       function.put("bool_not", Action.class.getMethod("boolNot", SemanticNode.class));
       function.put("bool_or", Action.class.getMethod("boolOr", SemanticNode.class));
@@ -43,9 +57,38 @@ public class Action {
       function.put("make_true_list", Action.class.getMethod("makeTrueList", SemanticNode.class));
       function.put("make_false_list", Action.class.getMethod("makeFalseList", SemanticNode.class));
       function.put("get_next_quad", Action.class.getMethod("getNextQuad", SemanticNode.class));
+      
+      //调用函数
       function.put("call_function", Action.class.getMethod("callFunction", SemanticNode.class));
       function.put("initialize_queue", Action.class.getMethod("initializeQueue", SemanticNode.class));
       function.put("add_parameter", Action.class.getMethod("addParameter", SemanticNode.class));
+
+      // 变量赋值
+      function.put("assign_end", Action.class.getMethod("assignEnd", SemanticNode.class));
+      function.put("assign_var", Action.class.getMethod("assignVar", SemanticNode.class));
+      function.put("assign_array_end",
+          Action.class.getMethod("assignArrayEnd", SemanticNode.class));
+      function.put("assign_array", Action.class.getMethod("assignArray", SemanticNode.class));
+      function.put("assign_exp", Action.class.getMethod("assignExp", SemanticNode.class));
+      function.put("assign_opr", Action.class.getMethod("assignOpr", SemanticNode.class));
+      function.put("assign_parth", Action.class.getMethod("assignParth", SemanticNode.class));
+      function.put("assign_base", Action.class.getMethod("assignBase", SemanticNode.class));
+      function.put("assign_src", Action.class.getMethod("assignSrc", SemanticNode.class));
+      // 控制流
+      function.put("back_m", Action.class.getMethod("backM", SemanticNode.class));
+      function.put("back_n", Action.class.getMethod("backN", SemanticNode.class));
+      function.put("ctrl_testS", Action.class.getMethod("ctrlTestS", SemanticNode.class));
+      function.put("ctrl_testBt", Action.class.getMethod("ctrlTestBt", SemanticNode.class));
+      function.put("ctrl_testBf", Action.class.getMethod("ctrlTestBf", SemanticNode.class));
+      function.put("ctrl_if", Action.class.getMethod("ctrlIf", SemanticNode.class));
+      function.put("ctrl_p", Action.class.getMethod("ctrlP", SemanticNode.class));
+      function.put("ctrl_np", Action.class.getMethod("ctrlNp", SemanticNode.class));
+      function.put("ctrl_while", Action.class.getMethod("ctrlWhile", SemanticNode.class));
+      function.put("ctrl_vplus", Action.class.getMethod("ctrlVplus", SemanticNode.class));
+      function.put("ctrl_vminus", Action.class.getMethod("ctrlVminus", SemanticNode.class));
+      function.put("ctrl_for1", Action.class.getMethod("ctrlFor1", SemanticNode.class));
+      function.put("ctrl_for2", Action.class.getMethod("ctrlFor2", SemanticNode.class));
+
     } catch (NoSuchMethodException | SecurityException e) {
       e.printStackTrace();
     }
@@ -78,18 +121,35 @@ public class Action {
     enter.add(type);
     enter.add(String.valueOf(offset));
     symbol.add(enter);
+
+    declVar.put(word, symbol.size() - 1);
   }
 
   // 生成一条三地址四元式
-  private static void gen(String lineIndex, String idn, String addr) {
+  private static void genAssign(String lineIndex, String idn, String first, String opr,
+      String second) {
     Vector<String> gen = new Vector<>();
     gen.add(lineIndex);
     gen.add(String.valueOf(index));
-    String three = idn + " = " + addr;
+
+    String three = "";
+    String four = "";
+    if (opr.equals("")) {
+      three = idn + " = " + first;
+      four = "( = , " + first + " , _ , " + idn + " )";
+    } else if (second.equals("")) {
+      three = idn + " = " + opr + " " + first;
+      four = "( " + opr + " , " + first + " , _ , " + idn + " )";
+    } else {
+      three = idn + " = " + first + " " + opr + " " + second;
+      four = "( " + opr + " , " + first + " , " + second + " , " + idn + " )";
+    }
     gen.add(three);
-    String four = "(=, " + addr + ", _, " + idn + ")";
     gen.add(four);
     intermediate.add(gen);
+
+    idn2Index.put(idn, index);
+
     index++;
   }
 
@@ -144,10 +204,14 @@ public class Action {
   // *idn需要用temp存
   public static void varDeclAssi(SemanticNode node) {
     SemanticNode parent = node.parrent;
-    SemanticNode G = parent.children.get(0);
+    SemanticNode G = parent.children.get(1);
 
     for (SemanticNode idn : Action.idn) {
-      gen(idn.lineIndex, idn.word, G.attr.get("addr"));
+      if (G.attr.containsKey("val")) {
+        genAssign(idn.lineIndex, idn.word, G.attr.get("val"), "", "");
+      } else {
+        genAssign(idn.lineIndex, idn.word, G.attr.get("addr"), "", "");
+      }
     }
     idn.clear();
   }
@@ -201,9 +265,458 @@ public class Action {
   }
 
   // ========== ========== ========== ========== ========== ========== ========== ==========
-  // ========== ========== ========== ========== ========== ========== ========== hanghang
+  // ========== ========== ========== ========== ========== ========== ========== 变量赋值
   // ========== ========== ========== ========== ========== ========== ========== ==========
 
+  // 寻找变量的addr
+  private static String lookup(String idn) {
+    if (idn2Index.containsKey(idn) || declVar.keySet().contains(idn)) {
+      return idn;
+    } else {
+      return null;
+    }
+  }
+
+
+  // 优化: 自上向下传递arraytype 正则提取处理 计算每个L'offset 向上传递相加
+  // 数组引用获取偏移量
+  private static String getOffset(String idn, String quote) {
+    String idnType = symbol.get(declVar.get(idn)).get(2);
+
+    Pattern pattern = Pattern.compile("(array\\()(\\d+)");
+    Matcher matcher = pattern.matcher(idnType);
+    List<Integer> length = new ArrayList<>();
+    while (matcher.find()) {
+      length.add(Integer.valueOf(matcher.group().replaceAll("array\\(", "")));
+    }
+
+    Pattern patternT = Pattern.compile("([a-z]+)(\\))");
+    Matcher matcherT = patternT.matcher(idnType);
+    matcherT.find();
+    String type = matcherT.group().replaceAll("\\)", "");
+    int width = 0;
+    switch (type) {
+      case "int":
+        width = 4;
+        break;
+      case "float":
+        width = 8;
+        break;
+      case "char":
+        width = 1;
+        break;
+    }
+
+    String[] quotes = quote.split(" ");
+
+    if (length.size() != quotes.length) {
+      return null;
+    }
+
+    List<String> tempIdns = new ArrayList<>();
+
+    for (int i = 0; i < quotes.length; i++) {
+      int temp = width;
+      for (int j = i + 1; j < length.size(); j++) {
+        temp *= length.get(j);
+      }
+      String tempIdn = "t" + String.valueOf(index);
+      tempIdns.add(tempIdn);
+      genAssign("", tempIdn, quotes[i], "*", String.valueOf(temp));
+    }
+
+    String offset = tempIdns.get(0);
+    for (int i = 1; i < tempIdns.size(); i++) {
+      String tempIdn = "t" + String.valueOf(index);
+      genAssign("", tempIdn, offset, "+", tempIdns.get(i));
+      offset = tempIdn;
+    }
+    return offset;
+  }
+
+  // 赋值语句结束
+  // S -> L equal E ; {S.nextlist=null; gen(L.addr'='E.addr) 可能是连等于}
+  public static void assignEnd(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode L = parent.children.get(0);
+    SemanticNode equal = parent.children.get(1);
+    SemanticNode E = parent.children.get(2);
+    SemanticNode SEM = parent.children.get(3);
+
+    parent.attr.put("nextlist", "");
+
+    if (equal.children.get(0).word.length() == 1) {
+      genAssign(SEM.lineIndex, L.attr.get("addr"), E.attr.get("addr"), "", "");
+    } else {
+      String Laddr = "t" + String.valueOf(index);
+      genAssign(SEM.lineIndex, Laddr, L.attr.get("addr"),
+          String.valueOf(equal.children.get(0).word.charAt(0)), E.attr.get("addr"));
+      genAssign(SEM.lineIndex, L.attr.get("addr"), Laddr, "", "");
+    }
+  }
+
+  // 赋值左部 变量或数组引用
+  // L -> idn {L.addr=loopkup(idn.word)} L' {L.addr=idn[getOffset(L'.type)]}
+  public static void assignVar(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode idn = parent.children.get(0);
+
+    parent.attr.put("addr", lookup(idn.word));
+  }
+
+  public static void assignArrayEnd(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode Lp = parent.children.get(2);
+
+    if (Lp.attr.containsKey("type")) {
+      parent.attr.put("addr", parent.attr.get("addr") + "["
+          + getOffset(parent.attr.get("addr"), Lp.attr.get("type")) + "]");
+    }
+  }
+
+  // 赋值 数组应用
+  // L' -> [E]L' {L'.type=E.addr L'.type}
+  public static void assignArray(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode E = parent.children.get(1);
+    SemanticNode Lp = parent.children.get(3);
+
+    if (Lp.attr.containsKey("type")) {
+      parent.attr.put("type", E.attr.get("addr") + " " + Lp.attr.get("type"));
+    } else {
+      parent.attr.put("type", E.attr.get("addr"));
+    }
+  }
+
+  // 赋值右部 算术表达式
+  // E -> G E' {E.addr=G.addr 'E'.opr' E'.addr 可能为空}
+  public static void assignExp(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode G = parent.children.get(0);
+    SemanticNode Ep = parent.children.get(1);
+
+    String Eaddr = "t" + String.valueOf(index);
+    parent.attr.put("addr", Eaddr);
+
+    if (!Ep.attr.containsKey("opr")) {
+      if (G.attr.containsKey("val")) {
+        parent.attr.put("addr", G.attr.get("val"));
+      } else {
+        parent.attr.put("addr", G.attr.get("addr"));
+      }
+    } else {
+      if (G.attr.containsKey("val")) {
+        genAssign("", Eaddr, G.attr.get("val"), Ep.attr.get("opr"), Ep.attr.get("addr"));
+      } else {
+        genAssign("", Eaddr, G.attr.get("addr"), Ep.attr.get("opr"), Ep.attr.get("addr"));
+      }
+    }
+  }
+
+  // 增加赋值项
+  // E' -> + G E' {E'.opr=+; gen(E'.addr'='G.addr 'E'.opr' E'.addr 可能为空)}
+  public static void assignOpr(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode OPR = parent.children.get(0);
+    SemanticNode G = parent.children.get(1);
+    SemanticNode Ep = parent.children.get(2);
+
+    String EpAddr = "t" + String.valueOf(index);
+    parent.attr.put("addr", EpAddr);
+
+    parent.attr.put("opr", "+");
+    if (!Ep.attr.containsKey("opr")) {
+      if (G.attr.containsKey("val")) {
+        parent.attr.put("addr", G.attr.get("val"));
+      } else {
+        parent.attr.put("addr", G.attr.get("addr"));
+      }
+    } else {
+      if (G.attr.containsKey("val")) {
+        genAssign(OPR.lineIndex, EpAddr, G.attr.get("val"), Ep.attr.get("opr"),
+            Ep.attr.get("addr"));
+      } else {
+        genAssign(OPR.lineIndex, EpAddr, G.attr.get("addr"), Ep.attr.get("opr"),
+            Ep.attr.get("addr"));
+      }
+    }
+  }
+
+  // 括号优先级
+  // G -> (E) {G.addr=E.addr}
+  public static void assignParth(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode E = parent.children.get(1);
+
+    parent.attr.put("addr", E.attr.get("addr"));
+  }
+
+  // 赋值右部 基本变量
+  // G -> cst | flt | oct | hex | chr {G.val=base.word}
+  public static void assignBase(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode base = parent.children.get(0);
+
+    parent.attr.put("val", base.word);
+  }
+
+  // 赋值右部 变量
+  // G -> L {G.addr=L.addr}
+  public static void assignSrc(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode L = parent.children.get(0);
+
+    parent.attr.put("addr", L.attr.get("addr"));
+  }
+
+  // ========== ========== ========== ========== ========== ========== ========== ==========
+  // ========== ========== ========== ========== ========== ========== ========== hanghang
+  // ========== ========== ========== ========== ========== ========== ========== ==========
+  // 回填辅助非终结符K（M）的空转移动作
+  // K -> ε {K.quad = nextquad;}
+  public static void backM(SemanticNode node) {
+    SemanticNode KNode = node.parrent;
+    int nextQuad = index;
+    KNode.attr.put("quad", String.valueOf(nextQuad));
+  }
+
+  // 回填辅助非终结符O（N）的空转移动作
+  // O -> ε { O.nextlist = makelist(nextquad);gen(‘goto _’);}
+  public static void backN(SemanticNode node) {
+    SemanticNode ONode = node.parrent;
+    ONode.attr.put("nextlist", String.valueOf(index));
+    Vector<String> line = new Vector<String>();
+    line.add(" ");
+    line.add(String.valueOf(index));
+    line.add("goto ");
+    line.add("(j, _, _, )");
+    intermediate.add(line);
+    index++;
+  }
+
+  // 用于debug的S
+  public static void ctrlTestS(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode idnNode = parent.children.get(0);
+    SemanticNode cstNode = parent.children.get(2);
+    genAssign(idnNode.lineIndex, idnNode.word, cstNode.word, "", "");
+    parent.attr.put("nextlist", "");
+  }
+
+  // 用于debug的B
+  public static void ctrlTestBt(SemanticNode node) {
+    SemanticNode BNode = node.parrent;
+    BNode.attr.put("truelist", String.valueOf(index));
+    BNode.attr.put("falselist", "");
+    Vector<String> line = new Vector<String>();
+    line.add(BNode.children.get(0).lineIndex);
+    line.add(String.valueOf(index));
+    line.add("goto ");
+    line.add("(j, _, _, )");
+    intermediate.add(line);
+    index++;
+  }
+
+  // 用于debug的B
+  public static void ctrlTestBf(SemanticNode node) {
+    SemanticNode BNode = node.parrent;
+    BNode.attr.put("falselist", String.valueOf(index));
+    BNode.attr.put("truelist", "");
+    Vector<String> line = new Vector<String>();
+    line.add(BNode.children.get(0).lineIndex);
+    line.add(String.valueOf(index));
+    line.add("goto ");
+    line.add("(j, _, _, )");
+    intermediate.add(line);
+    index++;
+  }
+
+  // 提取属性中的list序号列表
+  public static HashSet<String> ctrlGetList(SemanticNode node, String attr) {
+    HashSet<String> result = new HashSet<String>();
+    for (String str : node.attr.get(attr).split(",")) {
+      result.add(str);
+    }
+    return result;
+  }
+
+  // 对list中的三地址码和四元组进行回填
+  public static void ctrlBackPatch(Set<String> list, String quad) {
+    for (String str : list) {
+      if (str.length() > 0) {
+        String tac = intermediate.get(Integer.parseInt(str)).get(2);
+        intermediate.get(Integer.parseInt(str)).set(2, tac + quad);
+        String fte = intermediate.get(Integer.parseInt(str)).get(3);
+        fte = fte.substring(0, fte.length() - 1);
+        intermediate.get(Integer.parseInt(str)).set(3, fte + quad + ")");
+      }
+    }
+  }
+
+  public static String ctrlSet2String(Set<String> list) {
+    String result = "";
+    for (String str : list) {
+      result += str + ",";
+    }
+    result = result.substring(0, result.length() - 1);
+    return result;
+  }
+
+  public static void ctrlIf(SemanticNode node) {
+    SemanticNode SNode = node.parrent;
+    SemanticNode BNode = SNode.children.get(1);
+    SemanticNode K1Node = SNode.children.get(3);
+    SemanticNode K2Node = SNode.children.get(7);
+    SemanticNode S1Node = SNode.children.get(4);
+    SemanticNode S2Node = SNode.children.get(8);
+    SemanticNode ONode = SNode.children.get(5);
+    HashSet<String> SnextList = new HashSet<String>();
+    HashSet<String> BtrueList = new HashSet<String>();
+    HashSet<String> BfalseList = new HashSet<String>();
+    SnextList.addAll(ctrlGetList(S1Node, "nextlist"));
+    SnextList.addAll(ctrlGetList(ONode, "nextlist"));
+    SnextList.addAll(ctrlGetList(S2Node, "nextlist"));
+    SNode.attr.put("nextlist", ctrlSet2String(SnextList));
+
+    BtrueList.addAll(ctrlGetList(BNode, "truelist"));
+    BfalseList.addAll(ctrlGetList(BNode, "falselist"));
+    ctrlBackPatch(BtrueList, K1Node.attr.get("quad"));
+    ctrlBackPatch(BfalseList, K2Node.attr.get("quad"));
+  }
+
+  // 处理S的递归生成
+  // P -> S K P1 {P.nextlist = P1.nextlist; backpatch(S.nextlist,K.quad);}
+  public static void ctrlP(SemanticNode node) {
+    SemanticNode PNode = node.parrent;
+    SemanticNode SNode = PNode.children.get(0);
+    SemanticNode KNode = PNode.children.get(1);
+    SemanticNode P1Node = PNode.children.get(2);
+    String nextListStr = P1Node.attr.get("nextlist");
+    HashSet<String> SnextList = new HashSet<String>();
+    SnextList.addAll(ctrlGetList(SNode, "nextlist"));
+    PNode.attr.put("nextlist", nextListStr);
+    ctrlBackPatch(SnextList, KNode.attr.get("quad"));
+  }
+
+  // 处理P的空转移事件
+  // P -> ε{P.nextlist = null}
+  public static void ctrlNp(SemanticNode node) {
+    SemanticNode PNode = node.parrent;
+    PNode.attr.put("nextlist", "");
+  }
+
+  // while控制流
+  // S -> while K1 B do K2 S1 {S.nextlist = B.falselist; backpatch(S1.nextlist,K1.quad);
+  // backpatch(B.truelist,K2.quad); gen("goto" K1.quad)}
+  public static void ctrlWhile(SemanticNode node) {
+    SemanticNode SNode = node.parrent;
+    SemanticNode K1Node = SNode.children.get(1);
+    SemanticNode BNode = SNode.children.get(2);
+    SemanticNode K2Node = SNode.children.get(4);
+    SemanticNode S1Node = SNode.children.get(5);
+    SNode.attr.put("nextlist", BNode.attr.get("falselist"));
+    HashSet<String> S1nextList = new HashSet<String>();
+    HashSet<String> BtrueList = new HashSet<String>();
+    S1nextList.addAll(ctrlGetList(S1Node, "nextlist"));
+    BtrueList.addAll(ctrlGetList(BNode, "truelist"));
+    ctrlBackPatch(S1nextList, K1Node.attr.get("quad"));
+    ctrlBackPatch(BtrueList, K2Node.attr.get("quad"));
+
+    Vector<String> line = new Vector<String>();
+    line.add(" ");
+    line.add(String.valueOf(index));
+    line.add("goto " + K1Node.attr.get("quad"));
+    line.add("(j, _, _, " + K1Node.attr.get("quad") + ")");
+    intermediate.add(line);
+    index++;
+  }
+
+  // for循环判断递增
+  // V -> PLSPLS {V.type = "add"}
+  public static void ctrlVplus(SemanticNode node) {
+    SemanticNode VNode = node.parrent;
+    VNode.attr.put("type", "add");
+  }
+
+  // for循环判断递增
+  // V -> MNSMNS {V.type = "minus"}
+  public static void ctrlVminus(SemanticNode node) {
+    SemanticNode VNode = node.parrent;
+    VNode.attr.put("type", "minus");
+  }
+
+  // for循环 用于生成++/--语句
+  // S -> for ( S1 K1 B ; K2 IDN V {if V.type = "add": gen(IDN = IDN + 1);gen(goto
+  // K1.quad);else:gen(IDN = IDN - 1);gen(goto K1.quad);}
+  // ) { K3 S2 } {ctrl_for2}
+  public static void ctrlFor1(SemanticNode node) {
+    SemanticNode SNode = node.parrent;
+    SemanticNode K1Node = SNode.children.get(3);
+    SemanticNode idnNode = SNode.children.get(7);
+    SemanticNode VNode = SNode.children.get(8);
+    if (VNode.attr.get("type").equals("add")) {
+      Vector<String> line = new Vector<String>();
+      line.add(idnNode.lineIndex);
+      line.add(String.valueOf(index));
+      line.add(idnNode.word + " = " + idnNode.word + " + 1");
+      line.add("(+, " + idnNode.word + ", 1, " + idnNode.word + ")");
+      intermediate.add(line);
+      index++;
+    } else {
+      Vector<String> line = new Vector<String>();
+      line.add(idnNode.lineIndex);
+      line.add(String.valueOf(index));
+      line.add(idnNode.word + " = " + idnNode.word + " + 1");
+      line.add("(-, " + idnNode.word + ", 1, " + idnNode.word + ")");
+      intermediate.add(line);
+      index++;
+    }
+    Vector<String> line = new Vector<String>();
+    line = new Vector<String>();
+    line.add(idnNode.lineIndex);
+    line.add(String.valueOf(index));
+    line.add("goto " + K1Node.attr.get("quad"));
+    line.add("(j, _, _, " + K1Node.attr.get("quad") + ")");
+    intermediate.add(line);
+    index++;
+
+  }
+
+  // for循环 用于属性赋值与回填
+  // S -> for ( S1 K1 B ; K2 IDN V {ctrl_for1}
+  // ) { K3 S2 } {S.nextlist =
+  // B.falselist;backpatch(S1.nextlist,K1.quad);backpatch(B.truelist,K3.quad)
+  // backpatch(S2.nextlist,K2.quad); gen(goto K2.quad)}
+  public static void ctrlFor2(SemanticNode node) {
+    SemanticNode SNode = node.parrent;
+    SemanticNode S1Node = SNode.children.get(2);
+    SemanticNode S2Node = SNode.children.get(13);
+    SemanticNode BNode = SNode.children.get(4);
+    SemanticNode K1Node = SNode.children.get(3);
+    SemanticNode K2Node = SNode.children.get(6);
+    SemanticNode K3Node = SNode.children.get(12);
+    SemanticNode idnNode = SNode.children.get(7);
+    SemanticNode VNode = SNode.children.get(8);
+    SNode.attr.put("nextlist", BNode.attr.get("falselist"));
+    HashSet<String> S1nextList = new HashSet<String>();
+    HashSet<String> S2nextList = new HashSet<String>();
+    HashSet<String> trueList = new HashSet<String>();
+    S1nextList.addAll(ctrlGetList(S1Node, "nextlist"));
+    S2nextList.addAll(ctrlGetList(S2Node, "nextlist"));
+    trueList.addAll(ctrlGetList(BNode, "truelist"));
+    ctrlBackPatch(S1nextList, K1Node.attr.get("quad"));
+    ctrlBackPatch(trueList, K3Node.attr.get("quad"));
+    ctrlBackPatch(S2nextList, K2Node.attr.get("quad"));
+
+    Vector<String> line = new Vector<String>();
+    line.add(idnNode.lineIndex);
+    line.add(String.valueOf(index));
+    line.add("goto " + K2Node.attr.get("quad"));
+    line.add("(j, _, _, " + K2Node.attr.get("quad") + ")");
+    intermediate.add(line);
+    index++;
+  }
+  
   
   
   //========== ========== ========== ========== ========== ========== ========== ==========
@@ -211,86 +724,190 @@ public class Action {
   // ========== ========== ========== ========== ========== ========== ========== ==========
   
   //B'继承兄弟节点H的list
-  //…………H {B'.exttruelist = H.truelist; B'.exttruelist = H.truelist} B'
-  public static void inheritHNode(SemanticNode node) {
-	  System.out.println("inheritHNode");
+  //B -> H {B'.exttruelist = H.truelist; B'.extfalselist = H.falselist} B' ……
+  public static void inheritHNode1(SemanticNode node) {
+	SemanticNode H = node.parrent.children.get(0);
+	SemanticNode Bskim = node.parrent.children.get(2);
+	HashSet<String> BskimExtTrueList = new HashSet<String>();
+	HashSet<String> BskimExtFalseList = new HashSet<String>();
+	  
+	BskimExtTrueList.addAll(ctrlGetList(H, "truelist"));
+	BskimExtFalseList.addAll(ctrlGetList(H, "falselist"));
+	Bskim.attr.put("exttruelist", ctrlSet2String(BskimExtTrueList));
+	Bskim.attr.put("extfalselist", ctrlSet2String(BskimExtFalseList));
+  }
+  
+  //or,and语句中B'继承兄弟节点H的list
+  //B -> LOGORR/LOGAND Y H {B'.exttruelist = H.truelist; B'.extfalselist = H.falselist} B' ……
+  public static void inheritHNode2(SemanticNode node) {
+	SemanticNode H = node.parrent.children.get(2);
+	SemanticNode Bskim = node.parrent.children.get(4);
+	HashSet<String> BskimExtTrueList = new HashSet<String>();
+	HashSet<String> BskimExtFalseList = new HashSet<String>();
+	  
+	BskimExtTrueList.addAll(ctrlGetList(H, "truelist"));
+	BskimExtFalseList.addAll(ctrlGetList(H, "falselist"));
+	Bskim.attr.put("exttruelist", ctrlSet2String(BskimExtTrueList));
+	Bskim.attr.put("extfalselist", ctrlSet2String(BskimExtFalseList));
   }
   
   //B获得子节点B'的list
-  //B -> H B'{B.truelist = B'.truelist; B.falselist = B'.falselist}
+  //B -> H {a} B'{B.truelist = B'.truelist; B.falselist = B'.falselist}
   public static void getList(SemanticNode node) {
-	  System.out.println("getList");
+	SemanticNode B = node.parrent;
+	SemanticNode Bskim = node.parrent.children.get(2);
+	HashSet<String> BtrueList = new HashSet<String>();
+	HashSet<String> BfalseList = new HashSet<String>();
+	
+	BtrueList.addAll(ctrlGetList(Bskim, "truelist"));
+	BfalseList.addAll(ctrlGetList(Bskim, "falselist"));
+	B.attr.put("truelist", ctrlSet2String(BtrueList));
+	B.attr.put("falselist", ctrlSet2String(BfalseList));
   }
   
   //B为H取反
   //B -> not H{B.truelist = H.falselist; B.falselist = H.truelist}
   public static void boolNot(SemanticNode node) {
-	  System.out.println("boolNot");
+	SemanticNode B = node.parrent;
+	SemanticNode H = node.parrent.children.get(1);
+	HashSet<String> BtrueList = new HashSet<String>();
+	HashSet<String> BfalseList = new HashSet<String>();
+		
+	BtrueList.addAll(ctrlGetList(H, "truelist"));
+	BfalseList.addAll(ctrlGetList(H, "falselist"));
+	B.attr.put("truelist", ctrlSet2String(BtrueList));
+	B.attr.put("falselist", ctrlSet2String(BfalseList));
   }
   
   //布尔语句中or的相关操作
-  //B1' -> logorr Y H B2'{B1'.truelist = merge(B1'.exttruelist, B2'.truelist); B1'.falselist = B2'.falselist; backpatch(B1'.falselist, Y.quad);}
+  //B1' -> logorr Y H {a} B2'{B1'.truelist = merge(B1'.exttruelist, B2'.truelist); B1'.falselist = B2'.falselist; backpatch(B1'.falselist, Y.quad);}
   public static void boolOr(SemanticNode node) {
-	  System.out.println("boolOr");
+	SemanticNode B1skim = node.parrent;
+	SemanticNode Y = node.parrent.children.get(1);
+	SemanticNode B2skim = node.parrent.children.get(4);
+	HashSet<String> B1skimtrueList = new HashSet<String>();
+	HashSet<String> B1skimfalseList = new HashSet<String>();
+	
+	B1skimtrueList.addAll(ctrlGetList(B1skim, "exttruelist"));
+	B1skimtrueList.addAll(ctrlGetList(B2skim, "truelist"));
+	B1skimfalseList.addAll(ctrlGetList(B2skim, "falselist"));
+	B1skim.attr.put("truelist", ctrlSet2String(B1skimtrueList));
+	B1skim.attr.put("falselist", ctrlSet2String(B1skimfalseList));
+	
+	ctrlBackPatch(B1skimfalseList, Y.attr.get("quad"));
   }
   
   //布尔语句中and的相关操作
-  //B1' -> logand Y H B2'{B1'.truelist = B2'.truelist; B1'.falselist = merge(B1'extfalselist, B2'.falselist); backpatch(B1'.truelist, Y.quad);}
+  //B1' -> logand Y H {a} B2'{B1'.truelist = B2'.truelist; B1'.falselist = merge(B1'extfalselist, B2'.falselist); backpatch(B1'.truelist, Y.quad);}
   public static void boolAnd(SemanticNode node) {
-	  System.out.println("boolAnd");
+	SemanticNode B1skim = node.parrent;
+	SemanticNode Y = node.parrent.children.get(1);
+	SemanticNode B2skim = node.parrent.children.get(4);
+	HashSet<String> B1skimtrueList = new HashSet<String>();
+	HashSet<String> B1skimfalseList = new HashSet<String>();
+		
+	B1skimtrueList.addAll(ctrlGetList(B2skim, "truelist"));
+	B1skimfalseList.addAll(ctrlGetList(B1skim, "extfalselist"));
+	B1skimfalseList.addAll(ctrlGetList(B2skim, "falselist"));
+	B1skim.attr.put("truelist", ctrlSet2String(B1skimtrueList));
+	B1skim.attr.put("falselist", ctrlSet2String(B1skimfalseList));
+		
+	ctrlBackPatch(B1skimtrueList, Y.attr.get("quad"));
   }
   
   //B'为空时的操作
   //B' -> ε {B'.truelist = B'.exttruelist; B'.falselist = B'.extfalselist}
   public static void boolNull(SemanticNode node) {
-	  System.out.println("boolNull");
+	SemanticNode Bskim = node.parrent;
+	HashSet<String> BskimtrueList = new HashSet<String>();
+	HashSet<String> BskimfalseList = new HashSet<String>();
+	
+	BskimtrueList.addAll(ctrlGetList(Bskim, "exttruelist"));
+	BskimfalseList.addAll(ctrlGetList(Bskim, "extfalselist"));
+	Bskim.attr.put("truelist", ctrlSet2String(BskimtrueList));
+	Bskim.attr.put("falselist", ctrlSet2String(BskimfalseList));
   }
   
-  //通过引入Y来获取下一行的代码标号
+  //通过引入Y来获取当前代码标号
   //Y -> ε{Y.quad = nextquad}
   public static void getNextQuad(SemanticNode node) {
-	  System.out.println("getNextQuad");
+	  SemanticNode Y = node.parrent;
+	  int nextQuad = index;
+	  Y.attr.put("quad", String.valueOf(nextQuad));
   }
   
   //布尔表达式加上左右括号时的list传递
   //H -> SLP B SRP{H.truelist = B.truelist; H.falselist = B.falselist}
   public static void addParentheses(SemanticNode node) {
-	  System.out.println("addParentheses");
+	SemanticNode H = node.parrent;
+	SemanticNode B = node.parrent.children.get(1);
+	HashSet<String> HtrueList = new HashSet<String>();
+	HashSet<String> HfalseList = new HashSet<String>();
+			
+	HtrueList.addAll(ctrlGetList(B, "truelist"));
+	HfalseList.addAll(ctrlGetList(B, "falselist"));
+	H.attr.put("truelist", ctrlSet2String(HtrueList));
+	H.attr.put("falselist", ctrlSet2String(HfalseList));
   }
   
   //relop表达式的list生成，并传递给H
   //H -> I relop E {H.truelist = makelist(nextquad); H.falselist = makelist(nextquad+1); gen('if' I.addr relop E.addr 'goto _'); gen('goto _');}
   public static void makeRelopList(SemanticNode node) {
-	  System.out.println("makeRelopList");
+	SemanticNode H = node.parrent;
+	SemanticNode I = node.parrent.children.get(0);
+	SemanticNode r = node.parrent.children.get(1);
+	SemanticNode E = node.parrent.children.get(2);
+	String Iaddr = I.attr.get("addr");
+	String Eaddr = E.attr.get("addr");
+	String relop = r.children.get(0).word;
+	
+	H.attr.put("truelist", String.valueOf(index));
+	Vector<String> line1 = new Vector<String>();
+	line1.add(" ");
+	line1.add(String.valueOf(index));
+	line1.add("'if' " + Iaddr +" " + relop + " " + Eaddr +  " 'goto' ");
+	line1.add("(" + relop + ", " + Iaddr + ", " + Eaddr + ", )");
+	intermediate.add(line1);
+	index++;
+	
+	H.attr.put("falselist", String.valueOf(index));
+	Vector<String> line2 = new Vector<String>();
+	line2.add(" ");
+	line2.add(String.valueOf(index));
+	line2.add("'goto' ");
+	line2.add("(goto, _, _, )");
+	intermediate.add(line2);
+	index++;
   }
   
   //true的表达式的list生成并传递给H
   //H -> true {H.truelist = makelist(nextquad); gen('goto _');}
   public static void makeTrueList(SemanticNode node) {
-	  System.out.println("makeTrueList");
+
   }
   
   //true的表达式的list生成并传递给H
   //H -> false {H.falselist = makelist(nextquad); gen('goto _');}
   public static void makeFalseList(SemanticNode node) {
-	  System.out.println("makeFalseList");
+
   }
   
   //调用函数
   //S -> call IDN SLP elist SRP SEM{对队列中每个参数t有gen('param' t); gen('call' IDN.addr ',' number)}
   public static void callFunction(SemanticNode node) {
-	  System.out.println("callFunction");
+
   }
   
   //参数队列初始化为只有一个E
   //Elist -> E Elist'{队列仅包含E.addr}
   public static void initializeQueue(SemanticNode node) {
-	  System.out.println("initializeQueue");
+
   }
   
   //参数队列增加参数
   //Elist -> CMA E Elist'{E.addr 添加到队列队尾}
   public static void addParameter(SemanticNode node) {
-	  System.out.println("addParameter");
+
   }
+ 
 }
