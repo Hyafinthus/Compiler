@@ -46,6 +46,7 @@ public class SemanticParser2Tree {
         SemanticNode action = this.stack.pop();
         String function = action.data.replaceAll("[{}]", "");
         try {
+          System.out.println(function);
           Action.function.get(function).invoke(Action.class, action);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
           e.printStackTrace();
