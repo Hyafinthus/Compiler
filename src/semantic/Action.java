@@ -89,6 +89,13 @@ public class Action {
       function.put("ctrl_for1", Action.class.getMethod("ctrlFor1", SemanticNode.class));
       function.put("ctrl_for2", Action.class.getMethod("ctrlFor2", SemanticNode.class));
 
+      function.put("ctrl_switch1", Action.class.getMethod("ctrlSwitch1", SemanticNode.class));
+      function.put("ctrl_switch2", Action.class.getMethod("ctrlSwitch2", SemanticNode.class));
+      function.put("ctrl_switch3", Action.class.getMethod("ctrlSwitch3", SemanticNode.class));
+      function.put("ctrl_case1", Action.class.getMethod("ctrlCase1", SemanticNode.class));
+      function.put("ctrl_case2", Action.class.getMethod("ctrlCase2", SemanticNode.class));
+      function.put("ctrl_casen", Action.class.getMethod("ctrlCasen", SemanticNode.class));
+
     } catch (NoSuchMethodException | SecurityException e) {
       e.printStackTrace();
     }
@@ -717,6 +724,7 @@ public class Action {
     index++;
   }
   
+
   
   
   //========== ========== ========== ========== ========== ========== ========== ==========
@@ -910,4 +918,81 @@ public class Action {
 
   }
  
+
+  public static int ctrlStemp = -1;
+  
+  // switch 中的主体
+  // S -> switch ( IDN ) { {N.idn = IDN} N default : {label(Ln);} S1 } {S.nextlist = N.nextlist}
+  public static void ctrlSwitch1(SemanticNode node) {
+    SemanticNode SNode = node.parrent;
+    SemanticNode NNode = SNode.children.get(6);
+    SemanticNode idnNode = SNode.children.get(2);
+    NNode.attr.put("idn",idnNode.word);
+  }
+  
+  //switch 中的default
+  // S -> switch ( IDN ) { {N.idn = IDN} N default : {label(Ln);} S1 } {S.nextlist = N.nextlist}
+  public static void ctrlSwitch2(SemanticNode node) {
+    if(ctrlStemp !=-1) {
+      HashSet<String> list = new HashSet<String>();
+      list.add(String.valueOf(ctrlStemp));
+      ctrlBackPatch(list, String.valueOf(index));
+    }
+  }
+  
+ //switch 中的主体
+  // S -> switch ( IDN ) { {N.idn = IDN} N default : {label(Ln);} S1 } {S.nextlist = N.nextlist}
+  public static void ctrlSwitch3(SemanticNode node) {
+    SemanticNode SNode = node.parrent;
+    SemanticNode NNode = SNode.children.get(6);
+    SNode.attr.put("nextlist",NNode.attr.get("nextlist"));
+    ctrlStemp = -1;
+  }
+  
+  // switch 中的case语句
+  // N -> case cst : {label(Ln-1);Ln = newlabel(); gen("if"IDN.word"!="cst"goto"Ln) } 
+  // S O N1 {N.nextlist = Merge(Merge(S.nextlist,O.nextlist),N1.nextlist)}
+  public static void ctrlCase1(SemanticNode node) {
+    SemanticNode NNode = node.parrent;
+    SemanticNode N1Node = NNode.children.get(6);
+    SemanticNode cstNode = NNode.children.get(1);
+    N1Node.attr.put("idn",NNode.attr.get("idn"));
+    if(ctrlStemp !=-1) {
+      HashSet<String> list = new HashSet<String>();
+      list.add(String.valueOf(ctrlStemp));
+      ctrlBackPatch(list, String.valueOf(index));
+    }
+    String idn = NNode.attr.get("idn");
+    ctrlStemp = index;
+    Vector<String> line = new Vector<String>();
+    line.add(cstNode.lineIndex);
+    line.add(String.valueOf(index));
+    line.add("if "+idn+"!= "+cstNode.word+" goto ");
+    line.add("(!=, "+idn+", "+cstNode.word+", )");
+    intermediate.add(line);
+    index++;
+  }
+  
+  //switch 中的case语句
+  // N -> case cst : {label(Ln-1);Ln = newlabel(); gen("if"IDN.word"!="cst"goto"Ln) } 
+  // S O N1 {N.nextlist = Merge(Merge(S.nextlist,O.nextlist),N1.nextlist)}
+  public static void ctrlCase2(SemanticNode node) {
+    SemanticNode NNode = node.parrent;
+    SemanticNode SNode = NNode.children.get(4);
+    SemanticNode ONode = NNode.children.get(5);
+    SemanticNode N1Node = NNode.children.get(6);
+    HashSet<String> NnextList = new HashSet<String>();
+    NnextList.addAll(ctrlGetList(SNode, "nextlist"));
+    NnextList.addAll(ctrlGetList(ONode, "nextlist"));
+    NnextList.addAll(ctrlGetList(N1Node, "nextlist"));
+    NNode.attr.put("nextlist", ctrlSet2String(NnextList));
+  }
+  
+  // switch 中case的空转移
+  // N -> ε {N.nextlist = null}
+  public static void ctrlCasen(SemanticNode node) {
+    SemanticNode NNode = node.parrent;
+    NNode.attr.put("nextlist","");
+  }
+
 }
