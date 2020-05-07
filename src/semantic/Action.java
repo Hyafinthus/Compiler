@@ -298,13 +298,15 @@ public class Action {
   }
 
   // 赋值语句结束
-  // S -> L equal E ; {gen(L.addr'='E.addr) 可能是连等于}
+  // S -> L equal E ; {S.nextlist=null; gen(L.addr'='E.addr) 可能是连等于}
   public static void assignEnd(SemanticNode node) {
     SemanticNode parent = node.parrent;
     SemanticNode L = parent.children.get(0);
     SemanticNode equal = parent.children.get(1);
     SemanticNode E = parent.children.get(2);
     SemanticNode SEM = parent.children.get(3);
+
+    parent.attr.put("nextlist", "");
 
     if (equal.children.get(0).word.length() == 1) {
       genAssign(SEM.lineIndex, L.attr.get("addr"), E.attr.get("addr"), "", "");
