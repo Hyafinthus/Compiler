@@ -22,6 +22,8 @@ public class Action {
   public static Vector<Vector<String>> symbol = new Vector<>();
   // 中间代码: lineIndex index three four
   public static Vector<Vector<String>> intermediate = new Vector<>();
+  // 错误信息: lineIndex idn info
+  public static Vector<Vector<String>> errorData = new Vector<>();
 
   // addr 声明变量:变量名 临时变量:t+index
   // 所有声明变量 对应声明Type(数组)
