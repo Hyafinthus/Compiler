@@ -871,7 +871,7 @@ public class Action {
   }
 
   // or,and语句中B'继承兄弟节点H的list
-  // B -> LOGORR/LOGAND Y H {B'.exttruelist = H.truelist; B'.extfalselist = H.falselist} B' ……
+  // B -> LOGORR/LOGAND K H {B'.exttruelist = H.truelist; B'.extfalselist = H.falselist} B' ……
   public static void inheritHNode2(SemanticNode node) {
     SemanticNode H = node.parrent.children.get(2);
     SemanticNode Bskim = node.parrent.children.get(4);
@@ -913,11 +913,11 @@ public class Action {
   }
 
   // 布尔语句中or的相关操作
-  // B1' -> logorr Y H {a} B2'{B1'.truelist = merge(B1'.exttruelist, B2'.truelist); B1'.falselist =
-  // B2'.falselist; backpatch(B1'.falselist, Y.quad);}
+  // B1' -> logorr K H {a} B2'{B1'.truelist = merge(B1'.exttruelist, B2'.truelist); B1'.falselist =
+  // B2'.falselist; backpatch(B1'.falselist, K.quad);}
   public static void boolOr(SemanticNode node) {
     SemanticNode B1skim = node.parrent;
-    SemanticNode Y = node.parrent.children.get(1);
+    SemanticNode K = node.parrent.children.get(1);
     SemanticNode B2skim = node.parrent.children.get(4);
     HashSet<String> B1skimtrueList = new HashSet<String>();
     HashSet<String> B1skimfalseList = new HashSet<String>();
@@ -929,15 +929,15 @@ public class Action {
     B1skim.attr.put("truelist", ctrlSet2String(B1skimtrueList));
     B1skim.attr.put("falselist", ctrlSet2String(B1skimfalseList));
 
-    ctrlBackPatch(B1skimExtfalseList, Y.attr.get("quad"));
+    ctrlBackPatch(B1skimExtfalseList, K.attr.get("quad"));
   }
 
   // 布尔语句中and的相关操作
-  // B1' -> logand Y H {a} B2'{B1'.truelist = B2'.truelist; B1'.falselist = merge(B1'extfalselist,
-  // B2'.falselist); backpatch(B1'.truelist, Y.quad);}
+  // B1' -> logand K H {a} B2'{B1'.truelist = B2'.truelist; B1'.falselist = merge(B1'extfalselist,
+  // B2'.falselist); backpatch(B1'.truelist, K.quad);}
   public static void boolAnd(SemanticNode node) {
     SemanticNode B1skim = node.parrent;
-    SemanticNode Y = node.parrent.children.get(1);
+    SemanticNode K = node.parrent.children.get(1);
     SemanticNode B2skim = node.parrent.children.get(4);
     HashSet<String> B1skimtrueList = new HashSet<String>();
     HashSet<String> B1skimfalseList = new HashSet<String>();
@@ -949,7 +949,7 @@ public class Action {
     B1skim.attr.put("truelist", ctrlSet2String(B1skimtrueList));
     B1skim.attr.put("falselist", ctrlSet2String(B1skimfalseList));
 
-    ctrlBackPatch(B1skimExttrueList, Y.attr.get("quad"));
+    ctrlBackPatch(B1skimExttrueList, K.attr.get("quad"));
   }
 
   // B'为空时的操作
@@ -1093,7 +1093,7 @@ public class Action {
   // 参数队列追加参数
   // Elist' -> CMA E Elist'{E.addr 添加到队列队尾}
   public static void addParameter(SemanticNode node) {
-    SemanticNode E = node.parrent.children.get(0);
+    SemanticNode E = node.parrent.children.get(1);
     System.out.println("============" + E.attr.get("addr"));
     if (E.attr.containsKey("addr")) {
       parametersQueue.offer(E.attr.get("addr"));
