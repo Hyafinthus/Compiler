@@ -1188,6 +1188,7 @@ public class Action {
       SemanticNode tempNode = parametersQueue.poll();
       String tempStr = tempNode.attr.get("addr");
       String tempType = tempNode.attr.get("type");
+      System.out.println(tempType+"===================="+parameterList.get(i));
       if(parameterNumFlag && !tempType.equals(parameterList.get(i))) {
     	  System.out.println(tempStr+"---------"+parameterList.get(i));
     	  parameterFlag = false;
