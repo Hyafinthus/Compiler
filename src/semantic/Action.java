@@ -164,7 +164,7 @@ public class Action {
 
     String three = "";
     String four = "";
-    if (opr.equals("proc")) {
+    if (opr.equals("proc")) { // f 函数名 s 参数个数 idn 赋值
       three = idn + " = call " + first + ", " + second;
       four = "( call , " + first + " , " + second + " , " + idn + " )";
     } else if (opr.equals("")) {
@@ -468,7 +468,7 @@ public class Action {
     if (L.attr.get("type").equals(E.attr.get("type"))) { // 类型匹配
       // 函数返回值赋值
       if (E.attr.get("addr").equals("proc")) {
-        genAssign(SEM.lineIndex, L.attr.get("addr"), "call", E.children.get(1).word,
+        genAssign(SEM.lineIndex, L.attr.get("addr"), E.children.get(1).word, "proc",
             E.attr.get("num"));
       }
 
@@ -485,6 +485,7 @@ public class Action {
       }
     } else {
       // TODO 错误处理 类型不匹配 强制类型转换
+      System.out.println("------------------------不匹配");
     }
   }
 
@@ -980,11 +981,16 @@ public class Action {
     SemanticNode ENode = SNode.children.get(1);
     SNode.attr.put("nextlist", "");
     Vector<String> line = new Vector<String>();
+
+    System.err.println("-------------------" + SNode.attr.get("return"));
+    System.err.println("-------------------" + ENode.attr.get("type"));
+
     if (ENode.attr.containsKey("type") && SNode.attr.containsKey("return")
         && !SNode.attr.get("return").equals(ENode.attr.get("type"))) {
       line.add(returnNode.lineIndex);
       line.add(ENode.attr.get("addr"));
       line.add("函数声明的返回值与实际返回类型不匹配！");
+      System.out.println("=========================不匹配");
     }
     line = new Vector<String>();
     line.add(returnNode.lineIndex);
@@ -993,7 +999,6 @@ public class Action {
     line.add("(return, _, _, " + ENode.attr.get("addr") + ")");
     intermediate.add(line);
     index++;
-
   }
 
   // ========== ========== ========== ========== ========== ========== ========== ==========
@@ -1215,7 +1220,7 @@ public class Action {
       parameterList.add(0, str);
       parameterNum++;
     }
-    
+
     node.parrent.attr.put("num", parameterNum + "");
 
     if (parameterNum != queueSize) {
@@ -1284,9 +1289,8 @@ public class Action {
     SemanticNode idn = node.parrent.children.get(1);
     node.parrent.attr.put("nextlist", "");
     node.parrent.attr.put("addr", "proc");
-    node.parrent.attr.put("type", idn.attr.get("return"));
+    node.parrent.attr.put("type", procIdnInfo.get(idn.word).get("return"));
 
-    int tempNum = 0;
     int parameterNum = 0;
     int queueSize = parametersQueue.size();
 
@@ -1299,7 +1303,7 @@ public class Action {
       parameterList.add(0, str);
       parameterNum++;
     }
-    
+
     node.parrent.attr.put("num", parameterNum + "");
 
     if (parameterNum != queueSize) {
@@ -1327,17 +1331,8 @@ public class Action {
       line1.add("'param' " + tempStr);
       line1.add("(param, _, _, " + tempStr + ")");
       intermediate.add(line1);
-      tempNum++;
       index++;
     }
-
-    Vector<String> line2 = new Vector<String>();
-    line2.add(call.lineIndex);
-    line2.add(String.valueOf(index));
-    line2.add("'call' " + idn.word + " ',' " + tempNum);
-    line2.add("(call, " + idn.word + ", " + tempNum + ", _)");
-    intermediate.add(line2);
-    index++;
 
     // 错误判断
     // idn是否为函数
