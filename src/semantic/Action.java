@@ -86,6 +86,11 @@ public class Action {
       function.put("ctrl_case1", Action.class.getMethod("ctrlCase1", SemanticNode.class));
       function.put("ctrl_case2", Action.class.getMethod("ctrlCase2", SemanticNode.class));
       function.put("ctrl_casen", Action.class.getMethod("ctrlCasen", SemanticNode.class));
+      
+      // 函数声明检测
+      function.put("return_type_p", Action.class.getMethod("returnTypeP", SemanticNode.class));
+      function.put("return_type_sp", Action.class.getMethod("returnTypeSp", SemanticNode.class));
+      function.put("check_return_type", Action.class.getMethod("checkReturnType", SemanticNode.class));
 
       // 布尔表达式
       function.put("inherit_H_node1", Action.class.getMethod("inheritHNode1", SemanticNode.class));
@@ -102,6 +107,7 @@ public class Action {
 
       // 函数调用
       function.put("call_function", Action.class.getMethod("callFunction", SemanticNode.class));
+      function.put("call_function_return", Action.class.getMethod("callFunctionReturn", SemanticNode.class));
       function.put("initialize_queue",
           Action.class.getMethod("initializeQueue", SemanticNode.class));
       function.put("add_parameter", Action.class.getMethod("addParameter", SemanticNode.class));
@@ -689,12 +695,13 @@ public class Action {
   }
 
   // 处理S的递归生成
-  // P -> S K P1 {P.nextlist = P1.nextlist; backpatch(S.nextlist,K.quad);}
+  // P -> {P1.return = P.return;S.return = P.return;} S K P1 
+  // {P.nextlist = P1.nextlist; backpatch(S.nextlist,K.quad);}
   public static void ctrlP(SemanticNode node) {
     SemanticNode PNode = node.parrent;
-    SemanticNode SNode = PNode.children.get(0);
-    SemanticNode KNode = PNode.children.get(1);
-    SemanticNode P1Node = PNode.children.get(2);
+    SemanticNode SNode = PNode.children.get(1);
+    SemanticNode KNode = PNode.children.get(2);
+    SemanticNode P1Node = PNode.children.get(3);
     String nextListStr = P1Node.attr.get("nextlist");
     HashSet<String> SnextList = new HashSet<String>();
     SnextList.addAll(ctrlGetList(SNode, "nextlist"));
@@ -894,6 +901,56 @@ public class Action {
     SemanticNode NNode = node.parrent;
     NNode.attr.put("nextlist", "");
   }
+  
+  // ========== ========== ========== ========== ========== ========== ========== ==========
+  // ========== ========== ========== ========== ========== ========== 函数声明中返回类型检测
+  // ========== ========== ========== ========== ========== ========== ========== ==========
+  
+  // P的函数声明中返回值与声明返回值类型检测
+  // P -> {P1.return = P.return} D P1
+  public static void returnTypeP(SemanticNode node) {
+    SemanticNode PNode = node.parrent;
+    SemanticNode P1Node = PNode.children.get(2);
+    if(PNode.attr.containsKey("return")) {
+      P1Node.attr.put("return",PNode.attr.get("return"));
+    }
+  }
+  
+  // P的函数声明中返回值与声明返回值类型检测
+  // P -> {P1.return = P.return;S.return = P.return;} S K P1 {ctrl_p}
+  public static void returnTypeSp(SemanticNode node) {
+    SemanticNode PNode = node.parrent;
+    SemanticNode SNode = PNode.children.get(1);
+    SemanticNode P1Node = PNode.children.get(3);
+    if(PNode.attr.containsKey("return")) {
+      P1Node.attr.put("return",PNode.attr.get("return"));
+      SNode.attr.put("return",PNode.attr.get("return"));
+    }
+  }
+  
+  // 函数声明语句中的return语句的翻译与类型检查
+  // S -> return E ; {gen(return E.addr) if(S.return != E.type) error}
+  public static void checkReturnType(SemanticNode node) {
+    SemanticNode SNode = node.parrent;
+    SemanticNode returnNode = SNode.children.get(0);
+    SemanticNode ENode = SNode.children.get(1);
+    SNode.attr.put("nextlist","");
+    Vector<String> line = new Vector<String>();
+    if(ENode.attr.containsKey("type")&&SNode.attr.containsKey("return")
+        &&!SNode.attr.get("return").equals(ENode.attr.get("type"))) {
+      line.add(returnNode.lineIndex);
+      line.add(ENode.attr.get("addr"));
+      line.add("函数声明的返回值与实际返回类型不匹配！");
+    }
+    line = new Vector<String>();
+    line.add(returnNode.lineIndex);
+    line.add(String.valueOf(index));
+    line.add("return " + ENode.attr.get("addr"));
+    line.add("(return, _, _, " + ENode.attr.get("addr") + ")");
+    intermediate.add(line);
+    index++;
+    
+  }
 
   // ========== ========== ========== ========== ========== ========== ========== ==========
   // ========== ========== ========== ========== ========== ========== ========== 布尔表达式
@@ -1092,18 +1149,49 @@ public class Action {
   // ========== ========== ========== ========== ========== ========== ========== ==========
 
   // 参数队列
-  public static Queue<String> parametersQueue = new LinkedList<String>();
+  public static Queue<SemanticNode> parametersQueue = new LinkedList<SemanticNode>();
 
-  // 调用函数
+  // 调用无返回值的函数
   // S -> call IDN SLP elist SRP SEM{对队列中每个参数t有gen('param' t); gen('call' IDN.addr ',' number)}
   public static void callFunction(SemanticNode node) {
     SemanticNode call = node.parrent.children.get(0);
     SemanticNode idn = node.parrent.children.get(1);
     node.parrent.attr.put("nextlist", "");
+    
     int tempNum = 0;
+    int parameterNum = 0;
     int queueSize = parametersQueue.size();
+    
+    // 测试用
+    idn.attr.put("param", "int,float");
+    idn.attr.put("type", "proc");
+    
+    boolean parameterFlag = true;
+    boolean parameterNumFlag = true;
+    Vector<String> parameterList = new Vector<String>();
+    for(String str : idn.attr.get("param").split(",")) {
+    	parameterList.add(0, str);
+    	parameterNum++;
+    }
+    
+    if(parameterNum!=queueSize) {
+    	Vector<String> line = new Vector<String>();
+        line.add(call.lineIndex);
+        line.add(idn.word);
+        line.add("参数数量不匹配");
+        System.out.println("===================参数数量不匹配");
+    	errorData.add(line);
+    	parameterNumFlag = false;
+    }
+    
     for (int i = 0; i < queueSize; i++) {
-      String tempStr = parametersQueue.poll();
+      SemanticNode tempNode = parametersQueue.poll();
+      String tempStr = tempNode.attr.get("addr");
+      String tempType = tempNode.attr.get("type");
+      if(parameterNumFlag && !tempType.equals(parameterList.get(i))) {
+    	  System.out.println(tempStr+"---------"+parameterList.get(i));
+    	  parameterFlag = false;
+      }
       Vector<String> line1 = new Vector<String>();
       line1.add(call.lineIndex);
       line1.add(String.valueOf(index));
@@ -1121,6 +1209,112 @@ public class Action {
     line2.add("(call, " + idn.word + ", " + tempNum + ", _)");
     intermediate.add(line2);
     index++;
+    
+    //错误判断
+    //idn是否为函数
+    if(idn.attr.get("type").equals("proc")) {
+    	Vector<String> line3 = new Vector<String>();
+        line3.add(call.lineIndex);
+        line3.add(idn.word);
+        line3.add("调用了一个非函数");
+        System.out.println("===================调用了一个非函数");
+    	errorData.add(line3);
+    }
+    
+    //形参与实参是否匹配
+    if(!parameterFlag) {
+    	Vector<String> line = new Vector<String>();
+        line.add(call.lineIndex);
+        line.add(idn.word);
+        line.add("参数类型不匹配");
+        System.out.println("===================参数类型不匹配");
+    	errorData.add(line);
+    }
+  }
+  
+  //调用有返回值的函数
+  // E -> call IDN SLP elist SRP SEM{对队列中每个参数t有gen('param' t); gen('call' IDN.addr ',' number)}
+  public static void callFunctionReturn(SemanticNode node) {
+	SemanticNode call = node.parrent.children.get(0);
+	SemanticNode idn = node.parrent.children.get(1);
+	node.parrent.attr.put("nextlist", "");
+	node.parrent.attr.put("addr", "proc");
+	node.parrent.attr.put("type", idn.attr.get("return"));
+	    
+	int tempNum = 0;
+	int parameterNum = 0;
+	int queueSize = parametersQueue.size();
+	    
+	// 测试用
+	idn.attr.put("param", "int,float");
+	idn.attr.put("type", "proc");
+	    
+	boolean parameterFlag = true;
+	boolean parameterNumFlag = true;
+	Vector<String> parameterList = new Vector<String>();
+	for(String str : idn.attr.get("param").split(",")) {
+	  parameterList.add(0, str);
+	  parameterNum++;
+	}
+	
+	node.parrent.attr.put("num", parameterNum+"");
+	    
+	if(parameterNum!=queueSize) {
+	  Vector<String> line = new Vector<String>();
+	  line.add(call.lineIndex);
+	  line.add(idn.word);
+	  line.add("参数数量不匹配");
+	  System.out.println("===================参数数量不匹配");
+	  errorData.add(line);
+	  parameterNumFlag = false;
+	}
+	    
+	for (int i = 0; i < queueSize; i++) {
+	  SemanticNode tempNode = parametersQueue.poll();
+	  String tempStr = tempNode.attr.get("addr");
+	  String tempType = tempNode.attr.get("type");
+	  if(parameterNumFlag && !tempType.equals(parameterList.get(i))) {
+	    System.out.println(tempStr+"---------"+parameterList.get(i));
+	    parameterFlag = false;
+	  }
+	  Vector<String> line1 = new Vector<String>();
+	  line1.add(call.lineIndex);
+	  line1.add(String.valueOf(index));
+	  line1.add("'param' " + tempStr);
+	  line1.add("(param, _, _, " + tempStr + ")");
+	  intermediate.add(line1);
+	  tempNum++;
+	  index++;
+	}
+
+	Vector<String> line2 = new Vector<String>();
+	line2.add(call.lineIndex);
+	line2.add(String.valueOf(index));
+	line2.add("'call' " + idn.word + " ',' " + tempNum);
+	line2.add("(call, " + idn.word + ", " + tempNum + ", _)");
+	intermediate.add(line2);
+	index++;
+	    
+	//错误判断
+	//idn是否为函数
+	if(idn.attr.get("type").equals("proc")) {
+	  Vector<String> line3 = new Vector<String>();
+	  line3.add(call.lineIndex);
+	  line3.add(idn.word);
+	  line3.add("调用了一个非函数");
+	  System.out.println("===================调用了一个非函数");
+	  errorData.add(line3);
+	}
+	    
+	//形参与实参是否匹配
+	if(!parameterFlag) {
+	  Vector<String> line = new Vector<String>();
+	  line.add(call.lineIndex);
+	  line.add(idn.word);
+	  line.add("参数类型不匹配");
+	  System.out.println("===================参数类型不匹配");
+	  errorData.add(line);
+	}
   }
 
   // 参数队列初始化为只有一个E
@@ -1129,7 +1323,7 @@ public class Action {
     SemanticNode E = node.parrent.children.get(0);
     System.out.println("============" + E.attr.get("addr"));
     if (E.attr.containsKey("addr")) {
-      parametersQueue.offer(E.attr.get("addr"));
+      parametersQueue.offer(E);
     }
   }
 
@@ -1139,7 +1333,7 @@ public class Action {
     SemanticNode E = node.parrent.children.get(1);
     System.out.println("============" + E.attr.get("addr"));
     if (E.attr.containsKey("addr")) {
-      parametersQueue.offer(E.attr.get("addr"));
+      parametersQueue.offer(E);
     }
   }
 }
