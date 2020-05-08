@@ -1260,7 +1260,7 @@ public class Action {
 
     // 错误判断
     // idn是否为函数
-    if (idn.attr.get("type").equals("proc")) {
+    if (!procIdnInfo.get(idn.word).get("type").equals("proc")) {
       Vector<String> line3 = new Vector<String>();
       line3.add(call.lineIndex);
       line3.add(idn.word);
