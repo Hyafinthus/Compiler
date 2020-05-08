@@ -20,6 +20,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import resource.FileFilter;
 import resource.ResourceManager;
+import semantic.Action;
 
 public class SemanticGui extends JFrame implements ActionListener {
   private static final long serialVersionUID = -990548592332708520L;

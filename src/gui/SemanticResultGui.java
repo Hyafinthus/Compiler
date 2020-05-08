@@ -1,18 +1,14 @@
 package gui;
 
-import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.JTree;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import resource.ResourceManager;
 import semantic.Action;
 
@@ -27,13 +23,14 @@ public class SemanticResultGui extends JFrame {
   public SemanticResultGui() {
     // Frame初始化设置
     this.setLayout(null);
-    this.setTitle("语法分析结果");
+    this.setTitle("语义分析结果");
     this.setSize(1600, 768);
     this.setLocation(200, 200);
 
     this.setResizable(false);
     this.setVisible(true);
 
+    
     this.jt1 = new JTable(Action.symbol, ResourceManager.SemanticSymboldataTitle);
     setTableFormat(this.jt1);
     this.jta1 = new JTextArea();

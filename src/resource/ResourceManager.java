@@ -278,6 +278,8 @@ public class ResourceManager {
   public static void semanticAnalysis(String text) {
     Vector<Vector<String>> tokenData = autoLexical(text);
     SemanticParser2Tree p2t = new SemanticParser2Tree(semanticConverter, tokenData);
+    semantic.Action.symbol = new Vector<Vector<String>>();
+    semantic.Action.intermediate = new Vector<Vector<String>>();
     p2t.analysis();
     semanticRoot = p2t.getRoot(); 
     SemanticErrordata = p2t.getErrorData();

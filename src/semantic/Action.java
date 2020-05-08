@@ -1070,8 +1070,8 @@ public class Action {
     Vector<String> line2 = new Vector<String>();
     line2.add(call.lineIndex);
     line2.add(String.valueOf(index));
-    line2.add("'call' " + idn.attr.get("addr") + " ',' " + tempNum);
-    line2.add("(call, " + idn.attr.get("addr") + ", " + tempNum + ", _)");
+    line2.add("'call' " + idn.word + " ',' " + tempNum);
+    line2.add("(call, " + idn.word + ", " + tempNum + ", _)");
     intermediate.add(line2);
     index++;
   }
@@ -1080,6 +1080,7 @@ public class Action {
   // Elist -> E Elist'{initialize_queue}
   public static void initializeQueue(SemanticNode node) {
     SemanticNode E = node.parrent.children.get(0);
+    System.out.println("============"+E.attr.get("addr"));
     if (E.attr.containsKey("addr")) {
       parametersQueue.offer(E.attr.get("addr"));
     }
@@ -1089,6 +1090,7 @@ public class Action {
   // Elist' -> CMA E Elist'{E.addr 添加到队列队尾}
   public static void addParameter(SemanticNode node) {
     SemanticNode E = node.parrent.children.get(0);
+    System.out.println("============"+E.attr.get("addr"));
     if (E.attr.containsKey("addr")) {
       parametersQueue.offer(E.attr.get("addr"));
     }
