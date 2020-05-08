@@ -26,9 +26,9 @@ public class Action {
   public static Vector<Vector<String>> errorData = new Vector<>();
 
   // addr 声明变量:变量名 临时变量:t+index
-  // 所有声明变量 对应声明Type(数组)
+  // 所有声明变量 对应符号表索引
   public static Map<String, Integer> declVar = new HashMap<>();
-  // 变量对应序号
+  // 所有赋值变量(可能是临时变量) 对应中间代码序号
   public static Map<String, Integer> idn2Index = new HashMap<>();
 
   public static Map<String, Method> function = new HashMap<>(); // String -> Method
@@ -41,6 +41,7 @@ public class Action {
       function.put("var_decl", Action.class.getMethod("varDecl", SemanticNode.class));
       function.put("var_record", Action.class.getMethod("varRecord", SemanticNode.class));
       function.put("var_proc", Action.class.getMethod("varProc", SemanticNode.class));
+      function.put("return_type_dp", Action.class.getMethod("returnTypeDp", SemanticNode.class));
       function.put("var_param", Action.class.getMethod("varParam", SemanticNode.class));
       function.put("var_cont_param", Action.class.getMethod("varContParam", SemanticNode.class));
       function.put("var_type1", Action.class.getMethod("varType1", SemanticNode.class));
@@ -149,7 +150,10 @@ public class Action {
 
     String three = "";
     String four = "";
-    if (opr.equals("")) {
+    if (opr.equals("proc")) {
+      three = idn + " = call " + first + ", " + second;
+      four = "( call , " + first + " , " + second + " , " + idn + " )";
+    } else if (opr.equals("")) {
       three = idn + " = " + first;
       four = "( = , " + first + " , _ , " + idn + " )";
     } else if (second.equals("")) {
@@ -192,7 +196,7 @@ public class Action {
   }
 
   // 变量类型proc
-  // D -> proc X idn {enter(idn.word,record:X.type,offset)} ( M ) { P }
+  // D -> proc X idn {enter(idn.word,record:X.type,offset)} ( M ) { {P.return=X.type} P }
   public static void varProc(SemanticNode node) {
     SemanticNode parent = node.parrent;
     SemanticNode proc = parent.children.get(0);
@@ -200,6 +204,14 @@ public class Action {
     SemanticNode idn = parent.children.get(2);
 
     enter(proc.lineIndex, idn.word, "proc:" + X.attr.get("type"));
+  }
+
+  public static void returnTypeDp(SemanticNode node) {
+    SemanticNode parent = node.parrent;
+    SemanticNode X = parent.children.get(1);
+    SemanticNode P = parent.children.get(9);
+
+    P.attr.put("return", X.attr.get("type"));
   }
 
   // 参数声明
@@ -327,10 +339,11 @@ public class Action {
   // ========== ========== ========== ========== ========== ========== ========== 变量赋值
   // ========== ========== ========== ========== ========== ========== ========== ==========
 
-  // 寻找变量的addr
+  // 寻找变量的addr 变量使用时必须是声明过的
+  // 返回变量的type
   private static String lookup(String idn) {
-    if (idn2Index.containsKey(idn) || declVar.keySet().contains(idn)) {
-      return idn;
+    if (declVar.keySet().contains(idn)) {
+      return symbol.get(declVar.get(idn)).get(2);
     } else {
       return null;
     }
@@ -393,7 +406,7 @@ public class Action {
   }
 
   // 赋值语句结束
-  // S -> L equal E ; {S.nextlist=null; gen(L.addr'='E.addr) 可能是连等于}
+  // S -> L equal E ; {checktype(L,E); S.nextlist=null; gen(L.addr'='E.addr) 可能是连等于}
   public static void assignEnd(SemanticNode node) {
     SemanticNode parent = node.parrent;
     SemanticNode L = parent.children.get(0);
@@ -403,23 +416,42 @@ public class Action {
 
     parent.attr.put("nextlist", "");
 
-    if (equal.children.get(0).word.length() == 1) {
-      genAssign(SEM.lineIndex, L.attr.get("addr"), E.attr.get("addr"), "", "");
+    if (L.attr.get("type").equals(E.attr.get("type"))) { // 类型匹配
+      // 函数返回值赋值
+      if (E.attr.get("addr").equals("proc")) {
+        genAssign(SEM.lineIndex, L.attr.get("addr"), "call", E.children.get(1).word,
+            E.attr.get("num"));
+      }
+
+      // 算术表达式赋值
+      else {
+        if (equal.children.get(0).word.length() == 1) {
+          genAssign(SEM.lineIndex, L.attr.get("addr"), E.attr.get("addr"), "", "");
+        } else {
+          String Laddr = "t" + String.valueOf(index);
+          genAssign(SEM.lineIndex, Laddr, L.attr.get("addr"),
+              String.valueOf(equal.children.get(0).word.charAt(0)), E.attr.get("addr"));
+          genAssign(SEM.lineIndex, L.attr.get("addr"), Laddr, "", "");
+        }
+      }
     } else {
-      String Laddr = "t" + String.valueOf(index);
-      genAssign(SEM.lineIndex, Laddr, L.attr.get("addr"),
-          String.valueOf(equal.children.get(0).word.charAt(0)), E.attr.get("addr"));
-      genAssign(SEM.lineIndex, L.attr.get("addr"), Laddr, "", "");
+      // TODO 错误处理 类型不匹配 强制类型转换
     }
   }
 
   // 赋值左部 变量或数组引用
-  // L -> idn {L.addr=loopkup(idn.word)} L' {L.addr=idn[getOffset(L'.type)]}
+  // L -> idn {L.type=idn.type; L.addr=loopkup(idn.word)} L' {L.addr=idn[getOffset(L'.type)]}
   public static void assignVar(SemanticNode node) {
     SemanticNode parent = node.parrent;
     SemanticNode idn = parent.children.get(0);
 
-    parent.attr.put("addr", lookup(idn.word));
+    String addr = lookup(idn.word);
+    if (addr == null) {
+      // TODO 错误处理 未声明变量引用
+    } else {
+      parent.attr.put("addr", idn.word);
+      parent.attr.put("type", lookup(idn.word));
+    }
   }
 
   public static void assignArrayEnd(SemanticNode node) {
@@ -447,7 +479,7 @@ public class Action {
   }
 
   // 赋值右部 算术表达式
-  // E -> G E' {E.addr=G.addr 'E'.opr' E'.addr 可能为空}
+  // E -> G E' {E.type=G.type; E.addr=G.addr 'E'.opr' E'.addr 可能为空}
   public static void assignExp(SemanticNode node) {
     SemanticNode parent = node.parrent;
     SemanticNode G = parent.children.get(0);
@@ -501,30 +533,39 @@ public class Action {
   }
 
   // 括号优先级
-  // G -> (E) {G.addr=E.addr}
+  // G -> (E) {G.type=E.type; G.addr=E.addr}
   public static void assignParth(SemanticNode node) {
     SemanticNode parent = node.parrent;
     SemanticNode E = parent.children.get(1);
 
     parent.attr.put("addr", E.attr.get("addr"));
+    parent.attr.put("type", E.attr.get("type"));
   }
 
   // 赋值右部 基本变量
-  // G -> cst | flt | oct | hex | chr {G.val=base.word}
+  // G -> cst | flt | oct | hex | chr {G.type=base.type; G.val=base.word}
   public static void assignBase(SemanticNode node) {
     SemanticNode parent = node.parrent;
     SemanticNode base = parent.children.get(0);
 
     parent.attr.put("val", base.word);
+    if (base.data.equals("cst") || base.data.equals("oct") || base.data.equals("hex")) {
+      parent.attr.put("type", "int");
+    } else if (base.data.equals("flt")) {
+      parent.attr.put("type", "float");
+    } else {
+      parent.attr.put("type", "char");
+    }
   }
 
   // 赋值右部 变量
-  // G -> L {G.addr=L.addr}
+  // G -> L {G.type=L.type; G.addr=L.addr}
   public static void assignSrc(SemanticNode node) {
     SemanticNode parent = node.parrent;
     SemanticNode L = parent.children.get(0);
 
     parent.attr.put("addr", L.attr.get("addr"));
+    parent.attr.put("type", L.attr.get("type"));
   }
 
   // ========== ========== ========== ========== ========== ========== ========== ==========
