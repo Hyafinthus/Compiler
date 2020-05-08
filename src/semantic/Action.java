@@ -536,7 +536,8 @@ public class Action {
 
     String Eaddr = "t" + String.valueOf(index);
     parent.attr.put("addr", Eaddr);
-
+    parent.attr.put("type", G.attr.get("type"));
+    
     if (!Ep.attr.containsKey("opr")) {
       if (G.attr.containsKey("val")) {
         parent.attr.put("addr", G.attr.get("val"));
@@ -1209,11 +1210,11 @@ public class Action {
     // idn.attr.put("param", "int,float");
     // idn.attr.put("type", "proc");
 
-    System.out.println("--" + idn.attr.get("type"));
+    System.out.println("--" + procIdnInfo.get(idn.word).get("type"));
     boolean parameterFlag = true;
     boolean parameterNumFlag = true;
     Vector<String> parameterList = new Vector<String>();
-    for (String str : idn.attr.get("param").split(",")) {
+    for (String str : procIdnInfo.get(idn.word).get("param").split(",")) {
       System.out.println("----" + str);
       parameterList.add(0, str);
       parameterNum++;
@@ -1259,7 +1260,7 @@ public class Action {
 
     // 错误判断
     // idn是否为函数
-    if (idn.attr.get("type").equals("proc")) {
+    if (!procIdnInfo.get(idn.word).get("type").equals("proc")) {
       Vector<String> line3 = new Vector<String>();
       line3.add(call.lineIndex);
       line3.add(idn.word);
