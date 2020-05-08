@@ -463,10 +463,8 @@ public class Action {
       }
     } else {
       if (G.attr.containsKey("val")) {
-        parent.attr.put("addr", G.attr.get("val"));
         genAssign("", Eaddr, G.attr.get("val"), Ep.attr.get("opr"), Ep.attr.get("addr"));
       } else {
-        parent.attr.put("addr", G.attr.get("addr"));
         genAssign("", Eaddr, G.attr.get("addr"), Ep.attr.get("opr"), Ep.attr.get("addr"));
       }
     }
@@ -483,7 +481,7 @@ public class Action {
     String EpAddr = "t" + String.valueOf(index);
     parent.attr.put("addr", EpAddr);
 
-    parent.attr.put("opr", "+");
+    parent.attr.put("opr", OPR.word);
     if (!Ep.attr.containsKey("opr")) {
       if (G.attr.containsKey("val")) {
         parent.attr.put("addr", G.attr.get("val"));
