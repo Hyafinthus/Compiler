@@ -97,7 +97,6 @@ public class Action {
       function.put("make_relop_list", Action.class.getMethod("makeRelopList", SemanticNode.class));
       function.put("make_true_list", Action.class.getMethod("makeTrueList", SemanticNode.class));
       function.put("make_false_list", Action.class.getMethod("makeFalseList", SemanticNode.class));
-      function.put("get_next_quad", Action.class.getMethod("getNextQuad", SemanticNode.class));
 
       // 函数调用
       function.put("call_function", Action.class.getMethod("callFunction", SemanticNode.class));
@@ -850,7 +849,7 @@ public class Action {
     NNode.attr.put("nextlist", "");
   }
 
-//========== ========== ========== ========== ========== ========== ========== ==========
+  //========== ========== ========== ========== ========== ========== ========== ==========
   // ========== ========== ========== ========== ========== ========== ========== pipixia
   // ========== ========== ========== ========== ========== ========== ========== ==========
   
@@ -961,14 +960,6 @@ public class Action {
 	Bskim.attr.put("falselist", ctrlSet2String(BskimfalseList));
   }
   
-  //通过引入Y来获取当前代码标号
-  //Y -> ε{Y.quad = nextquad}
-  public static void getNextQuad(SemanticNode node) {
-	  SemanticNode Y = node.parrent;
-	  int nextQuad = index;
-	  Y.attr.put("quad", String.valueOf(nextQuad));
-  }
-  
   //布尔表达式加上左右括号时的list传递
   //H -> SLP B SRP{H.truelist = B.truelist; H.falselist = B.falselist}
   public static void addParentheses(SemanticNode node) {
@@ -1017,11 +1008,12 @@ public class Action {
   //H -> true {H.truelist = makelist(nextquad); gen('goto _');}
   public static void makeTrueList(SemanticNode node) {
 	SemanticNode H = node.parrent;
+	SemanticNode t = node.parrent.children.get(0);
 		
 	H.attr.put("truelist", String.valueOf(index));
 	H.attr.put("falselist", "");
 	Vector<String> line1 = new Vector<String>();
-	line1.add(" ");
+	line1.add(t.lineIndex);
 	line1.add(String.valueOf(index));
 	line1.add("'goto' ");
 	line1.add("(goto, _, _, )");
@@ -1033,11 +1025,12 @@ public class Action {
   //H -> false {H.falselist = makelist(nextquad); gen('goto _');}
   public static void makeFalseList(SemanticNode node) {
 	SemanticNode H = node.parrent;
+	SemanticNode f = node.parrent.children.get(0);
 		
 	H.attr.put("truelist", "");
 	H.attr.put("falselist", String.valueOf(index));
 	Vector<String> line1 = new Vector<String>();
-	line1.add(" ");
+	line1.add(f.lineIndex);
 	line1.add(String.valueOf(index));
 	line1.add("'goto' ");
 	line1.add("(goto, _, _, )");
@@ -1048,13 +1041,15 @@ public class Action {
   //调用函数
   //S -> call IDN SLP elist SRP SEM{对队列中每个参数t有gen('param' t); gen('call' IDN.addr ',' number)}
   public static void callFunction(SemanticNode node) {
+	SemanticNode call = node.parrent.children.get(0);
 	SemanticNode idn = node.parrent.children.get(1);
+	node.parrent.attr.put("nextlist", "");
 	int tempNum = 0;
 	int queueSize = parametersQueue.size();
 	for(int i=0; i<queueSize; i++) {
 	  String tempStr = parametersQueue.poll();
 	  Vector<String> line1 = new Vector<String>();
-	  line1.add(" ");
+	  line1.add(call.lineIndex);
 	  line1.add(String.valueOf(index));
 	  line1.add("'param' " + tempStr);
 	  line1.add("(param, _, _, " + tempStr + ")");
@@ -1064,7 +1059,7 @@ public class Action {
 	}
 	
 	Vector<String> line2 = new Vector<String>();
-	line2.add(" ");
+	line2.add(call.lineIndex);
 	line2.add(String.valueOf(index));
 	line2.add("'call' " + idn.attr.get("addr") + " ',' " + tempNum);
 	line2.add("(call, "+ idn.attr.get("addr") +", " + tempNum + ", _)");
@@ -1076,19 +1071,17 @@ public class Action {
   //Elist -> E Elist'{initialize_queue}
   public static void initializeQueue(SemanticNode node) {
 	SemanticNode E = node.parrent.children.get(0);
-	E.attr.put("addr", "1");
-	//if(E.attr.containsKey("addr")) {
+	if(E.attr.containsKey("addr")) {
       parametersQueue.offer(E.attr.get("addr"));
-	//}
+	}
   }
   	
   //参数队列追加参数
   //Elist' -> CMA E Elist'{E.addr 添加到队列队尾}
   public static void addParameter(SemanticNode node) {
 	SemanticNode E = node.parrent.children.get(0);
-	E.attr.put("addr", "2");
-	//if(E.attr.containsKey("addr")) {
+	if(E.attr.containsKey("addr")) {
 	  parametersQueue.offer(E.attr.get("addr"));
-	//}
+	}
   }
 }
