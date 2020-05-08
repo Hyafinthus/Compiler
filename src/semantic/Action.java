@@ -1206,10 +1206,6 @@ public class Action {
     int parameterNum = 0;
     int queueSize = parametersQueue.size();
 
-    // 测试用
-    // idn.attr.put("param", "int,float");
-    // idn.attr.put("type", "proc");
-
     System.out.println("--" + procIdnInfo.get(idn.word).get("type"));
     boolean parameterFlag = true;
     boolean parameterNumFlag = true;
@@ -1219,6 +1215,8 @@ public class Action {
       parameterList.add(0, str);
       parameterNum++;
     }
+    
+    node.parrent.attr.put("num", parameterNum + "");
 
     if (parameterNum != queueSize) {
       Vector<String> line = new Vector<String>();
@@ -1234,7 +1232,6 @@ public class Action {
       SemanticNode tempNode = parametersQueue.poll();
       String tempStr = tempNode.attr.get("addr");
       String tempType = tempNode.attr.get("type");
-      System.out.println(tempType + "====================" + parameterList.get(i));
 
       if (parameterNumFlag && !tempType.equals(parameterList.get(i))) {
         System.out.println(tempStr + "---------" + parameterList.get(i));
@@ -1293,18 +1290,16 @@ public class Action {
     int parameterNum = 0;
     int queueSize = parametersQueue.size();
 
-    // 测试用
-    idn.attr.put("param", "int,float");
-    idn.attr.put("type", "proc");
-
+    System.out.println("--" + procIdnInfo.get(idn.word).get("type"));
     boolean parameterFlag = true;
     boolean parameterNumFlag = true;
     Vector<String> parameterList = new Vector<String>();
-    for (String str : idn.attr.get("param").split(",")) {
+    for (String str : procIdnInfo.get(idn.word).get("param").split(",")) {
+      System.out.println("----" + str);
       parameterList.add(0, str);
       parameterNum++;
     }
-
+    
     node.parrent.attr.put("num", parameterNum + "");
 
     if (parameterNum != queueSize) {
@@ -1321,6 +1316,7 @@ public class Action {
       SemanticNode tempNode = parametersQueue.poll();
       String tempStr = tempNode.attr.get("addr");
       String tempType = tempNode.attr.get("type");
+
       if (parameterNumFlag && !tempType.equals(parameterList.get(i))) {
         System.out.println(tempStr + "---------" + parameterList.get(i));
         parameterFlag = false;
@@ -1345,7 +1341,7 @@ public class Action {
 
     // 错误判断
     // idn是否为函数
-    if (idn.attr.get("type").equals("proc")) {
+    if (!procIdnInfo.get(idn.word).get("type").equals("proc")) {
       Vector<String> line3 = new Vector<String>();
       line3.add(call.lineIndex);
       line3.add(idn.word);
