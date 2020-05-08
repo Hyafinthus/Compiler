@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 import jxl.Cell;
 import jxl.Sheet;
@@ -278,8 +280,14 @@ public class ResourceManager {
   public static void semanticAnalysis(String text) {
     Vector<Vector<String>> tokenData = autoLexical(text);
     SemanticParser2Tree p2t = new SemanticParser2Tree(semanticConverter, tokenData);
+    
     semantic.Action.symbol = new Vector<Vector<String>>();
     semantic.Action.intermediate = new Vector<Vector<String>>();
+    semantic.Action.offset = 0; // 偏移量
+    semantic.Action.index = 0; // 三地址序号
+    semantic.Action.declVar = new HashMap<String, Integer>();
+    semantic.Action.idn2Index = new HashMap<String, Integer>();
+    
     p2t.analysis();
     semanticRoot = p2t.getRoot(); 
     SemanticErrordata = p2t.getErrorData();

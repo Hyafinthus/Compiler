@@ -1087,7 +1087,7 @@ public class Action {
   // 参数队列追加参数
   // Elist' -> CMA E Elist'{E.addr 添加到队列队尾}
   public static void addParameter(SemanticNode node) {
-    SemanticNode E = node.parrent.children.get(0);
+    SemanticNode E = node.parrent.children.get(1);
     System.out.println("============"+E.attr.get("addr"));
     if (E.attr.containsKey("addr")) {
       parametersQueue.offer(E.attr.get("addr"));
