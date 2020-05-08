@@ -31,6 +31,9 @@ public class Action {
   // 所有赋值变量(可能是临时变量) 对应中间代码序号
   public static Map<String, Integer> idn2Index = new HashMap<>();
 
+  // procIdn对应信息
+  public static Map<String, Map<String, String>> procIdnInfo = new HashMap<>();
+
   public static Map<String, Method> function = new HashMap<>(); // String -> Method
   static {
     try {
@@ -226,9 +229,12 @@ public class Action {
 
     P.attr.put("return", X.attr.get("type"));
 
-    idn.attr.put("type", "proc");
-    idn.attr.put("return", X.attr.get("type"));
-    idn.attr.put("param", M.attr.get("param"));
+    Map<String, String> idnInfo = new HashMap<>();
+    idnInfo.put("type", "proc");
+    idnInfo.put("return", X.attr.get("type"));
+    idnInfo.put("param", M.attr.get("param"));
+
+    procIdnInfo.put(idn.word, idnInfo);
   }
 
   // 参数声明
@@ -250,6 +256,8 @@ public class Action {
 
     if (Mp.attr.containsKey("param")) {
       parent.attr.put("param", X.attr.get("type") + "," + Mp.attr.get("param"));
+    } else {
+      parent.attr.put("param", X.attr.get("type"));
     }
   }
 
@@ -267,11 +275,13 @@ public class Action {
 
   public static void varContParamType(SemanticNode node) {
     SemanticNode parent = node.parrent;
-    SemanticNode X = parent.children.get(0);
+    SemanticNode X = parent.children.get(1);
     SemanticNode Mp = parent.children.get(4);
 
     if (Mp.attr.containsKey("param")) {
       parent.attr.put("param", X.attr.get("type") + "," + Mp.attr.get("param"));
+    } else {
+      parent.attr.put("param", X.attr.get("type"));
     }
   }
 
@@ -1196,15 +1206,15 @@ public class Action {
     int queueSize = parametersQueue.size();
 
     // 测试用
-    //idn.attr.put("param", "int,float");
-    //idn.attr.put("type", "proc");
+    // idn.attr.put("param", "int,float");
+    // idn.attr.put("type", "proc");
 
-    System.out.println("--"+idn.attr.get("type"));
+    System.out.println("--" + idn.attr.get("type"));
     boolean parameterFlag = true;
     boolean parameterNumFlag = true;
     Vector<String> parameterList = new Vector<String>();
     for (String str : idn.attr.get("param").split(",")) {
-      System.out.println("----"+str);
+      System.out.println("----" + str);
       parameterList.add(0, str);
       parameterNum++;
     }
@@ -1223,8 +1233,8 @@ public class Action {
       SemanticNode tempNode = parametersQueue.poll();
       String tempStr = tempNode.attr.get("addr");
       String tempType = tempNode.attr.get("type");
-      System.out.println(tempType+"===================="+parameterList.get(i));
-      
+      System.out.println(tempType + "====================" + parameterList.get(i));
+
       if (parameterNumFlag && !tempType.equals(parameterList.get(i))) {
         System.out.println(tempStr + "---------" + parameterList.get(i));
         parameterFlag = false;
