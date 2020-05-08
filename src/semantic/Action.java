@@ -611,6 +611,7 @@ public class Action {
     }
   }
 
+  // 辅助函数 把标号集合转化成属性中存储的字符串
   public static String ctrlSet2String(Set<String> list) {
     String result = "";
     for (String str : list) {
@@ -619,7 +620,10 @@ public class Action {
     result = result.substring(0, result.length() - 1);
     return result;
   }
-
+  
+  // IF控制流
+  // S -> if B then K1 S O else K2 S {S.nextlist = merge( merge(S1.nextlist,
+  // O.nextlist),S2.nextlist); backpatch(B.truelist,K1.quad); backpatch(B.falselist,K2.quad)}
   public static void ctrlIf(SemanticNode node) {
     SemanticNode SNode = node.parrent;
     SemanticNode BNode = SNode.children.get(1);
