@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 public class Action {
   public static int offset = 0; // 偏移量
   public static int index = 0; // 三地址序号
-  public static Queue<String> parametersQueue = new LinkedList<String>();
 
   // 符号表: lineIndex idn type offset
   public static Vector<Vector<String>> symbol = new Vector<>();
@@ -175,6 +174,7 @@ public class Action {
     SemanticNode idn = parent.children.get(1);
 
     enter(idn.lineIndex, idn.word, T.attr.get("type"));
+    Action.idn.clear();
     Action.idn.add(idn); // *最近的idn存储temp
     offset += Integer.valueOf(T.attr.get("width"));
   }
@@ -333,7 +333,6 @@ public class Action {
       return null;
     }
   }
-
 
   // 优化: 自上向下传递arraytype 正则提取处理 计算每个L'offset 向上传递相加
   // 数组引用获取偏移量
@@ -854,7 +853,7 @@ public class Action {
   }
 
   // ========== ========== ========== ========== ========== ========== ========== ==========
-  // ========== ========== ========== ========== ========== ========== ========== pipixia
+  // ========== ========== ========== ========== ========== ========== ========== 布尔表达式
   // ========== ========== ========== ========== ========== ========== ========== ==========
 
   // B'继承兄弟节点H的list
@@ -1045,6 +1044,13 @@ public class Action {
     index++;
   }
 
+  // ========== ========== ========== ========== ========== ========== ========== ==========
+  // ========== ========== ========== ========== ========== ========== ========== 函数调用
+  // ========== ========== ========== ========== ========== ========== ========== ==========
+
+  // 参数队列
+  public static Queue<String> parametersQueue = new LinkedList<String>();
+
   // 调用函数
   // S -> call IDN SLP elist SRP SEM{对队列中每个参数t有gen('param' t); gen('call' IDN.addr ',' number)}
   public static void callFunction(SemanticNode node) {
@@ -1078,7 +1084,7 @@ public class Action {
   // Elist -> E Elist'{initialize_queue}
   public static void initializeQueue(SemanticNode node) {
     SemanticNode E = node.parrent.children.get(0);
-    System.out.println("============"+E.attr.get("addr"));
+    System.out.println("============" + E.attr.get("addr"));
     if (E.attr.containsKey("addr")) {
       parametersQueue.offer(E.attr.get("addr"));
     }
@@ -1088,7 +1094,7 @@ public class Action {
   // Elist' -> CMA E Elist'{E.addr 添加到队列队尾}
   public static void addParameter(SemanticNode node) {
     SemanticNode E = node.parrent.children.get(0);
-    System.out.println("============"+E.attr.get("addr"));
+    System.out.println("============" + E.attr.get("addr"));
     if (E.attr.containsKey("addr")) {
       parametersQueue.offer(E.attr.get("addr"));
     }
