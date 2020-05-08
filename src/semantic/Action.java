@@ -85,6 +85,11 @@ public class Action {
       function.put("ctrl_case1", Action.class.getMethod("ctrlCase1", SemanticNode.class));
       function.put("ctrl_case2", Action.class.getMethod("ctrlCase2", SemanticNode.class));
       function.put("ctrl_casen", Action.class.getMethod("ctrlCasen", SemanticNode.class));
+      
+      // 函数声明检测
+      function.put("return_type_p", Action.class.getMethod("returnTypeP", SemanticNode.class));
+      function.put("return_type_sp", Action.class.getMethod("returnTypeSp", SemanticNode.class));
+      function.put("check_return_type", Action.class.getMethod("checkReturnType", SemanticNode.class));
 
       // 布尔表达式
       function.put("inherit_H_node1", Action.class.getMethod("inheritHNode1", SemanticNode.class));
@@ -649,12 +654,13 @@ public class Action {
   }
 
   // 处理S的递归生成
-  // P -> S K P1 {P.nextlist = P1.nextlist; backpatch(S.nextlist,K.quad);}
+  // P -> {P1.return = P.return;S.return = P.return;} S K P1 
+  // {P.nextlist = P1.nextlist; backpatch(S.nextlist,K.quad);}
   public static void ctrlP(SemanticNode node) {
     SemanticNode PNode = node.parrent;
-    SemanticNode SNode = PNode.children.get(0);
-    SemanticNode KNode = PNode.children.get(1);
-    SemanticNode P1Node = PNode.children.get(2);
+    SemanticNode SNode = PNode.children.get(1);
+    SemanticNode KNode = PNode.children.get(2);
+    SemanticNode P1Node = PNode.children.get(3);
     String nextListStr = P1Node.attr.get("nextlist");
     HashSet<String> SnextList = new HashSet<String>();
     SnextList.addAll(ctrlGetList(SNode, "nextlist"));
@@ -853,6 +859,56 @@ public class Action {
   public static void ctrlCasen(SemanticNode node) {
     SemanticNode NNode = node.parrent;
     NNode.attr.put("nextlist", "");
+  }
+  
+  // ========== ========== ========== ========== ========== ========== ========== ==========
+  // ========== ========== ========== ========== ========== ========== 函数声明中返回类型检测
+  // ========== ========== ========== ========== ========== ========== ========== ==========
+  
+  // P的函数声明中返回值与声明返回值类型检测
+  // P -> {P1.return = P.return} D P1
+  public static void returnTypeP(SemanticNode node) {
+    SemanticNode PNode = node.parrent;
+    SemanticNode P1Node = PNode.children.get(2);
+    if(PNode.attr.containsKey("return")) {
+      P1Node.attr.put("return",PNode.attr.get("return"));
+    }
+  }
+  
+  // P的函数声明中返回值与声明返回值类型检测
+  // P -> {P1.return = P.return;S.return = P.return;} S K P1 {ctrl_p}
+  public static void returnTypeSp(SemanticNode node) {
+    SemanticNode PNode = node.parrent;
+    SemanticNode SNode = PNode.children.get(1);
+    SemanticNode P1Node = PNode.children.get(3);
+    if(PNode.attr.containsKey("return")) {
+      P1Node.attr.put("return",PNode.attr.get("return"));
+      SNode.attr.put("return",PNode.attr.get("return"));
+    }
+  }
+  
+  // 函数声明语句中的return语句的翻译与类型检查
+  // S -> return E ; {gen(return E.addr) if(S.return != E.type) error}
+  public static void checkReturnType(SemanticNode node) {
+    SemanticNode SNode = node.parrent;
+    SemanticNode returnNode = SNode.children.get(0);
+    SemanticNode ENode = SNode.children.get(1);
+    SNode.attr.put("nextlist","");
+    Vector<String> line = new Vector<String>();
+    if(ENode.attr.containsKey("type")&&SNode.attr.containsKey("return")
+        &&!SNode.attr.get("return").equals(ENode.attr.get("type"))) {
+      line.add(returnNode.lineIndex);
+      line.add(ENode.attr.get("addr"));
+      line.add("函数声明的返回值与实际返回类型不匹配！");
+    }
+    line = new Vector<String>();
+    line.add(returnNode.lineIndex);
+    line.add(String.valueOf(index));
+    line.add("return " + ENode.attr.get("addr"));
+    line.add("(return, _, _, " + ENode.attr.get("addr") + ")");
+    intermediate.add(line);
+    index++;
+    
   }
 
   // ========== ========== ========== ========== ========== ========== ========== ==========
