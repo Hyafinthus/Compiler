@@ -536,6 +536,7 @@ public class Action {
 
     String Eaddr = "t" + String.valueOf(index);
     parent.attr.put("addr", Eaddr);
+    parent.attr.put("type", G.attr.get("type"));
 
     if (!Ep.attr.containsKey("opr")) {
       if (G.attr.containsKey("val")) {
@@ -598,9 +599,9 @@ public class Action {
     SemanticNode base = parent.children.get(0);
 
     parent.attr.put("val", base.word);
-    if (base.data.equals("cst") || base.data.equals("oct") || base.data.equals("hex")) {
+    if (base.data.equals("CST") || base.data.equals("OCT") || base.data.equals("HEX")) {
       parent.attr.put("type", "int");
-    } else if (base.data.equals("flt")) {
+    } else if (base.data.equals("FLT")) {
       parent.attr.put("type", "float");
     } else {
       parent.attr.put("type", "char");
@@ -1209,11 +1210,11 @@ public class Action {
     // idn.attr.put("param", "int,float");
     // idn.attr.put("type", "proc");
 
-    System.out.println("--" + idn.attr.get("type"));
+    System.out.println("--" + procIdnInfo.get(idn.word).get("type"));
     boolean parameterFlag = true;
     boolean parameterNumFlag = true;
     Vector<String> parameterList = new Vector<String>();
-    for (String str : idn.attr.get("param").split(",")) {
+    for (String str : procIdnInfo.get(idn.word).get("param").split(",")) {
       System.out.println("----" + str);
       parameterList.add(0, str);
       parameterNum++;
