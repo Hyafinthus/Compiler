@@ -124,9 +124,9 @@ public class Action {
     }
   }
 
-  public static String t; // 临时变量
-  public static String w; // 临时变量
-  public static SemanticNode T; // 临时存储变量类型
+  public static String t; // 临时变量 数组声明时类型
+  public static String w; // 临时变量 数组声明时宽度
+  public static SemanticNode T; // 临时存储变量类型 变量连续赋值时类型与宽度
   public static List<SemanticNode> idn = new ArrayList<>(); // 临时存储名
 
   // ========== ========== ========== ========== ========== ========== ========== ==========
@@ -193,10 +193,18 @@ public class Action {
     SemanticNode T = parent.children.get(0);
     SemanticNode idn = parent.children.get(1);
 
-    enter(idn.lineIndex, idn.word, T.attr.get("type"));
-    Action.idn.clear();
-    Action.idn.add(idn); // *最近的idn存储temp
-    offset += Integer.valueOf(T.attr.get("width"));
+    if (lookup(idn.word) != null) {
+      Vector<String> error = new Vector<>();
+      error.add(idn.lineIndex);
+      error.add(idn.word);
+      error.add("变量重复声明");
+      Action.errorData.add(error);
+    } else {
+      enter(idn.lineIndex, idn.word, T.attr.get("type"));
+      Action.idn.clear();
+      Action.idn.add(idn); // *最近的idn存储temp
+      offset += Integer.valueOf(T.attr.get("width"));
+    }
   }
 
   // 变量类型record
@@ -217,7 +225,15 @@ public class Action {
     SemanticNode X = parent.children.get(1);
     SemanticNode idn = parent.children.get(2);
 
-    enter(proc.lineIndex, idn.word, "proc:" + X.attr.get("type"));
+    if (procIdnInfo.containsKey(idn.word)) {
+      Vector<String> error = new Vector<>();
+      error.add(idn.lineIndex);
+      error.add(idn.word);
+      error.add("函数重复声明");
+      Action.errorData.add(error);
+    } else {
+      enter(proc.lineIndex, idn.word, "proc:" + X.attr.get("type"));
+    }
   }
 
   public static void returnTypeDp(SemanticNode node) {
@@ -314,23 +330,61 @@ public class Action {
     SemanticNode idn = parent.children.get(1);
     SemanticNode T = Action.T;
 
-    enter(idn.lineIndex, idn.word, T.attr.get("type"));
-    Action.idn.add(idn); // *最近的idn存储temp
-    offset += Integer.valueOf(T.attr.get("width"));
+    if (lookup(idn.word) != null) {
+      Vector<String> error = new Vector<>();
+      error.add(idn.lineIndex);
+      error.add(idn.word);
+      error.add("变量重复声明");
+      Action.errorData.add(error);
+    } else {
+      enter(idn.lineIndex, idn.word, T.attr.get("type"));
+      Action.idn.add(idn); // *最近的idn存储temp
+      offset += Integer.valueOf(T.attr.get("width"));
+    }
   }
 
   // 变量声明赋值
-  // A -> = G {gen(idn'='G.addr)}
+  // A -> = E {gen(idn'='E.addr)}
   // *idn需要用temp存
   public static void varDeclAssi(SemanticNode node) {
     SemanticNode parent = node.parrent;
-    SemanticNode G = parent.children.get(1);
+    SemanticNode ASN = parent.children.get(0);
+    SemanticNode E = parent.children.get(1);
+
+    if (Action.T.attr.get("type").equals(E.attr.get("type"))) { // 类型匹配
+      // 函数返回值赋值
+      if (E.attr.get("addr").equals("proc")) {
+        for (SemanticNode idn : Action.idn) {
+          genAssign(ASN.lineIndex, idn.word, E.children.get(1).word, "proc", E.attr.get("num"));
+        }
+      }
+
+      // 算术表达式赋值
+      else {
+        for (SemanticNode idn : Action.idn) {
+          genAssign(ASN.lineIndex, idn.word, E.attr.get("addr"), "", "");
+        }
+      }
+    } else {
+      // 强制类型转换 int -> float
+      if (Action.T.attr.get("type").equals("float") && E.attr.get("type").equals("int")) {
+        for (SemanticNode idn : Action.idn) {
+          genAssign(ASN.lineIndex, idn.word, E.attr.get("addr"), "", "");
+        }
+      } else {
+        Vector<String> error = new Vector<>();
+        error.add(ASN.lineIndex);
+        error.add(E.attr.get("addr"));
+        error.add("赋值类型与声明类型不匹配");
+        Action.errorData.add(error);
+      }
+    }
 
     for (SemanticNode idn : Action.idn) {
-      if (G.attr.containsKey("val")) {
-        genAssign(idn.lineIndex, idn.word, G.attr.get("val"), "", "");
+      if (E.attr.containsKey("val")) {
+        genAssign(idn.lineIndex, idn.word, E.attr.get("val"), "", "");
       } else {
-        genAssign(idn.lineIndex, idn.word, G.attr.get("addr"), "", "");
+        genAssign(idn.lineIndex, idn.word, E.attr.get("addr"), "", "");
       }
     }
     idn.clear();
@@ -480,7 +534,6 @@ public class Action {
 
     // 左右数组类型改为数组内类型
     nodeTypeArray2Inner(L);
-    nodeTypeArray2Inner(E);
 
     if (L.attr.get("type").equals(E.attr.get("type"))) { // 类型匹配
       // 函数返回值赋值
@@ -504,6 +557,14 @@ public class Action {
       // 强制类型转换 int -> float
       if (L.attr.get("type").equals("float") && E.attr.get("type").equals("int")) {
         System.out.println("=======int转float");
+        if (equal.children.get(0).word.length() == 1) { // =
+          genAssign(SEM.lineIndex, L.attr.get("addr"), E.attr.get("addr"), "", "");
+        } else { // +=
+          String Laddr = "t" + String.valueOf(index);
+          genAssign(SEM.lineIndex, Laddr, L.attr.get("addr"),
+              String.valueOf(equal.children.get(0).word.charAt(0)), E.attr.get("addr"));
+          genAssign(SEM.lineIndex, L.attr.get("addr"), Laddr, "", "");
+        }
       } else {
         Vector<String> error = new Vector<>();
         error.add(SEM.lineIndex);
@@ -522,7 +583,11 @@ public class Action {
 
     String addr = lookup(idn.word);
     if (addr == null) {
-      // TODO 错误处理 未声明变量引用
+      Vector<String> error = new Vector<>();
+      error.add(idn.lineIndex);
+      error.add(idn.word);
+      error.add("变量使用时未声明");
+      Action.errorData.add(error);
     } else {
       parent.attr.put("addr", idn.word);
       parent.attr.put("type", lookup(idn.word));
@@ -531,12 +596,21 @@ public class Action {
 
   public static void assignArrayEnd(SemanticNode node) {
     SemanticNode parent = node.parrent;
+    SemanticNode idn = parent.children.get(0);
     SemanticNode Lp = parent.children.get(2);
 
     if (Lp.attr.containsKey("type")) { // 数组引用
-      parent.attr.put("addr", parent.attr.get("addr") + "["
-          + getOffset(parent.attr.get("addr"), Lp.attr.get("type")) + "]");
-      nodeTypeArray2Inner(parent);
+      if (!lookup(idn.word).contains("array")) {
+        Vector<String> error = new Vector<>();
+        error.add(idn.lineIndex);
+        error.add(idn.word);
+        error.add("对非数组使用数组索引");
+        Action.errorData.add(error);
+      } else {
+        parent.attr.put("addr", parent.attr.get("addr") + "["
+            + getOffset(parent.attr.get("addr"), Lp.attr.get("type")) + "]");
+        nodeTypeArray2Inner(parent);
+      }
     }
   }
 
@@ -547,10 +621,18 @@ public class Action {
     SemanticNode E = parent.children.get(1);
     SemanticNode Lp = parent.children.get(3);
 
-    if (Lp.attr.containsKey("type")) {
-      parent.attr.put("type", E.attr.get("addr") + " " + Lp.attr.get("type"));
+    if (!E.attr.get("type").equals("int")) {
+      Vector<String> error = new Vector<>();
+      error.add("");
+      error.add(E.attr.get("addr"));
+      error.add("数组索引不为常数");
+      Action.errorData.add(error);
     } else {
-      parent.attr.put("type", E.attr.get("addr"));
+      if (Lp.attr.containsKey("type")) {
+        parent.attr.put("type", E.attr.get("addr") + " " + Lp.attr.get("type"));
+      } else {
+        parent.attr.put("type", E.attr.get("addr"));
+      }
     }
   }
 
@@ -590,6 +672,12 @@ public class Action {
         if ((G.attr.get("type").equals("float") && Ep.attr.get("type").equals("int"))
             || (G.attr.get("type").equals("int") && Ep.attr.get("type").equals("float"))) { // 可转换
           parent.attr.put("type", "float");
+
+          if (G.attr.containsKey("val")) {
+            genAssign("", Eaddr, G.attr.get("val"), Ep.attr.get("opr"), Ep.attr.get("addr"));
+          } else {
+            genAssign("", Eaddr, G.attr.get("addr"), Ep.attr.get("opr"), Ep.attr.get("addr"));
+          }
         } else { // 不可转换
           Vector<String> error = new Vector<>();
           error.add("");
@@ -643,6 +731,14 @@ public class Action {
         if ((G.attr.get("type").equals("float") && Ep.attr.get("type").equals("int"))
             || (G.attr.get("type").equals("int") && Ep.attr.get("type").equals("float"))) { // 可转换
           parent.attr.put("type", "float");
+
+          if (G.attr.containsKey("val")) {
+            genAssign(OPR.lineIndex, EpAddr, G.attr.get("val"), Ep.attr.get("opr"),
+                Ep.attr.get("addr"));
+          } else {
+            genAssign(OPR.lineIndex, EpAddr, G.attr.get("addr"), Ep.attr.get("opr"),
+                Ep.attr.get("addr"));
+          }
         } else { // 不可转换
           Vector<String> error = new Vector<>();
           error.add(OPR.lineIndex);
@@ -1070,7 +1166,8 @@ public class Action {
         && !SNode.attr.get("return").equals(ENode.attr.get("type"))) {
       line.add(returnNode.lineIndex);
       line.add(ENode.attr.get("addr"));
-      line.add("函数声明的返回值与实际返回类型不匹配！");
+      line.add("函数声明返回值类型不匹配");
+      Action.errorData.add(line);
       System.out.println("=========================不匹配");
     }
     line = new Vector<String>();
