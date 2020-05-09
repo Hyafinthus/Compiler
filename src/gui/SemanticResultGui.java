@@ -47,7 +47,7 @@ public class SemanticResultGui extends JFrame {
     this.jsp2.setViewportView(jt2);
     this.add(jsp2);
     
-    this.jt3 = new JTable(ResourceManager.SemanticErrordata, ResourceManager.SemanticErrordataTitle);
+    this.jt3 = new JTable(Action.errorData, ResourceManager.SemanticErrordataTitle);
     setTableFormat(this.jt3);
     this.jta3 = new JTextArea();
     this.jsp3 = new JScrollPane(jta3);
