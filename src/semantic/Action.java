@@ -374,19 +374,12 @@ public class Action {
       } else {
         Vector<String> error = new Vector<>();
         error.add(ASN.lineIndex);
-        error.add(E.attr.get("addr"));
+        error.add(ASN.word);
         error.add("赋值类型与声明类型不匹配");
         Action.errorData.add(error);
       }
     }
 
-    for (SemanticNode idn : Action.idn) {
-      if (E.attr.containsKey("val")) {
-        genAssign(idn.lineIndex, idn.word, E.attr.get("val"), "", "");
-      } else {
-        genAssign(idn.lineIndex, idn.word, E.attr.get("addr"), "", "");
-      }
-    }
     idn.clear();
   }
 
@@ -532,6 +525,10 @@ public class Action {
 
     parent.attr.put("nextlist", "");
 
+    if (L.attr.get("addr") == null) {
+      return;
+    }
+
     // 左右数组类型改为数组内类型
     nodeTypeArray2Inner(L);
 
@@ -588,6 +585,7 @@ public class Action {
       error.add(idn.word);
       error.add("变量使用时未声明");
       Action.errorData.add(error);
+      parent.attr.put("addr", null);
     } else {
       parent.attr.put("addr", idn.word);
       parent.attr.put("type", lookup(idn.word));
@@ -657,12 +655,7 @@ public class Action {
 
     // 后面没有E'
     if (!Ep.attr.containsKey("opr")) {
-      if (G.attr.containsKey("val")) {
-        parent.attr.put("addr", G.attr.get("val"));
-      } else {
-        parent.attr.put("addr", G.attr.get("addr"));
-      }
-
+      parent.attr.put("addr", G.attr.get("addr"));
       parent.attr.put("", G.attr.get("type"));
     }
 
@@ -673,24 +666,16 @@ public class Action {
             || (G.attr.get("type").equals("int") && Ep.attr.get("type").equals("float"))) { // 可转换
           parent.attr.put("type", "float");
 
-          if (G.attr.containsKey("val")) {
-            genAssign("", Eaddr, G.attr.get("val"), Ep.attr.get("opr"), Ep.attr.get("addr"));
-          } else {
-            genAssign("", Eaddr, G.attr.get("addr"), Ep.attr.get("opr"), Ep.attr.get("addr"));
-          }
+          genAssign("", Eaddr, G.attr.get("addr"), Ep.attr.get("opr"), Ep.attr.get("addr"));
         } else { // 不可转换
           Vector<String> error = new Vector<>();
           error.add("");
-          error.add(G.attr.containsKey("val") ? G.attr.get("val") : G.attr.get("addr"));
+          error.add(G.attr.get("addr"));
           error.add("运算符两侧变量类型不匹配");
           Action.errorData.add(error);
         }
       } else { // 类型相同
-        if (G.attr.containsKey("val")) {
-          genAssign("", Eaddr, G.attr.get("val"), Ep.attr.get("opr"), Ep.attr.get("addr"));
-        } else {
-          genAssign("", Eaddr, G.attr.get("addr"), Ep.attr.get("opr"), Ep.attr.get("addr"));
-        }
+        genAssign("", Eaddr, G.attr.get("addr"), Ep.attr.get("opr"), Ep.attr.get("addr"));
 
         parent.attr.put("type", G.attr.get("type"));
       }
@@ -714,11 +699,7 @@ public class Action {
 
     // 后面没有E'
     if (!Ep.attr.containsKey("opr")) {
-      if (G.attr.containsKey("val")) {
-        parent.attr.put("addr", G.attr.get("val"));
-      } else {
-        parent.attr.put("addr", G.attr.get("addr"));
-      }
+      parent.attr.put("addr", G.attr.get("addr"));
 
       parent.attr.put("type", G.attr.get("type"));
     }
@@ -732,28 +713,18 @@ public class Action {
             || (G.attr.get("type").equals("int") && Ep.attr.get("type").equals("float"))) { // 可转换
           parent.attr.put("type", "float");
 
-          if (G.attr.containsKey("val")) {
-            genAssign(OPR.lineIndex, EpAddr, G.attr.get("val"), Ep.attr.get("opr"),
-                Ep.attr.get("addr"));
-          } else {
-            genAssign(OPR.lineIndex, EpAddr, G.attr.get("addr"), Ep.attr.get("opr"),
-                Ep.attr.get("addr"));
-          }
+          genAssign(OPR.lineIndex, EpAddr, G.attr.get("addr"), Ep.attr.get("opr"),
+              Ep.attr.get("addr"));
         } else { // 不可转换
           Vector<String> error = new Vector<>();
           error.add(OPR.lineIndex);
-          error.add(G.attr.containsKey("val") ? G.attr.get("val") : G.attr.get("addr"));
+          error.add(G.attr.get("addr"));
           error.add("运算符两侧变量类型不匹配");
           Action.errorData.add(error);
         }
       } else { // 类型相同
-        if (G.attr.containsKey("val")) {
-          genAssign(OPR.lineIndex, EpAddr, G.attr.get("val"), Ep.attr.get("opr"),
-              Ep.attr.get("addr"));
-        } else {
-          genAssign(OPR.lineIndex, EpAddr, G.attr.get("addr"), Ep.attr.get("opr"),
-              Ep.attr.get("addr"));
-        }
+        genAssign(OPR.lineIndex, EpAddr, G.attr.get("addr"), Ep.attr.get("opr"),
+            Ep.attr.get("addr"));
 
         parent.attr.put("type", G.attr.get("type"));
       }
@@ -776,7 +747,7 @@ public class Action {
     SemanticNode parent = node.parrent;
     SemanticNode base = parent.children.get(0);
 
-    parent.attr.put("val", base.word);
+    parent.attr.put("addr", base.word);
     if (base.data.equals("CST") || base.data.equals("OCT") || base.data.equals("HEX")) {
       parent.attr.put("type", "int");
     } else if (base.data.equals("FLT")) {
@@ -1389,10 +1360,22 @@ public class Action {
     int parameterNum = 0;
     int queueSize = parametersQueue.size();
 
-    System.out.println("--" + procIdnInfo.get(idn.word).get("type"));
     boolean parameterFlag = true;
     boolean parameterNumFlag = true;
     Vector<String> parameterList = new Vector<String>();
+
+    // 错误判断
+    // idn是否为函数
+    if (!procIdnInfo.containsKey(idn.word)) {
+      Vector<String> line3 = new Vector<String>();
+      line3.add(call.lineIndex);
+      line3.add(idn.word);
+      line3.add("调用了一个非函数");
+      System.out.println("===================调用了一个非函数");
+      errorData.add(line3);
+      return;
+    }
+
     for (String str : procIdnInfo.get(idn.word).get("param").split(",")) {
       System.out.println("----" + str);
       parameterList.add(0, str);
@@ -1438,17 +1421,6 @@ public class Action {
     intermediate.add(line2);
     index++;
 
-    // 错误判断
-    // idn是否为函数
-    if (!procIdnInfo.get(idn.word).get("type").equals("proc")) {
-      Vector<String> line3 = new Vector<String>();
-      line3.add(call.lineIndex);
-      line3.add(idn.word);
-      line3.add("调用了一个非函数");
-      System.out.println("===================调用了一个非函数");
-      errorData.add(line3);
-    }
-
     // 形参与实参是否匹配
     if (!parameterFlag) {
       Vector<String> line = new Vector<String>();
@@ -1472,10 +1444,22 @@ public class Action {
     int parameterNum = 0;
     int queueSize = parametersQueue.size();
 
-    System.out.println("--" + procIdnInfo.get(idn.word).get("type"));
     boolean parameterFlag = true;
     boolean parameterNumFlag = true;
     Vector<String> parameterList = new Vector<String>();
+
+    // 错误判断
+    // idn是否为函数
+    if (!procIdnInfo.containsKey(idn.word)) {
+      Vector<String> line3 = new Vector<String>();
+      line3.add(call.lineIndex);
+      line3.add(idn.word);
+      line3.add("调用了一个非函数");
+      System.out.println("===================调用了一个非函数");
+      errorData.add(line3);
+      return;
+    }
+
     for (String str : procIdnInfo.get(idn.word).get("param").split(",")) {
       System.out.println("----" + str);
       parameterList.add(0, str);
@@ -1510,17 +1494,6 @@ public class Action {
       line1.add("(param, _, _, " + tempStr + ")");
       intermediate.add(line1);
       index++;
-    }
-
-    // 错误判断
-    // idn是否为函数
-    if (!procIdnInfo.get(idn.word).get("type").equals("proc")) {
-      Vector<String> line3 = new Vector<String>();
-      line3.add(call.lineIndex);
-      line3.add(idn.word);
-      line3.add("调用了一个非函数");
-      System.out.println("===================调用了一个非函数");
-      errorData.add(line3);
     }
 
     // 形参与实参是否匹配

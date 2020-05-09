@@ -5,8 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Vector;
 import jxl.Cell;
 import jxl.Sheet;
@@ -16,6 +14,7 @@ import jxl.write.WritableWorkbook;
 import lexical.Dfa;
 import lexical.Dfa2Token;
 import lexical.Nfa;
+import semantic.Action;
 import semantic.SemanticConverter;
 import semantic.SemanticNode;
 import semantic.SemanticParser2Tree;
@@ -62,16 +61,16 @@ public class ResourceManager {
   public static Vector<Vector<String>> SyntaxErrordata = new Vector<Vector<String>>();
   public static Vector<String> SyntaxErrordataTitle =
       new Vector<String>(Arrays.asList("行号", "错误项", "错误信息"));
-  
-  //语义分析符号表表头
+
+  // 语义分析符号表表头
   public static Vector<String> SemanticSymboldataTitle =
       new Vector<String>(Arrays.asList("行号", "符号", "类型", "偏移量"));
-  
-  //语义分析中间产生式表头
+
+  // 语义分析中间产生式表头
   public static Vector<String> intermediatedataTitle =
       new Vector<String>(Arrays.asList("行号", "序号", "三地址指令", "四元式"));
-  
-  //语义分析错误表头
+
+  // 语义分析错误表头
   public static Vector<String> SemanticErrordataTitle =
       new Vector<String>(Arrays.asList("行号", "错误项", "错误信息"));
 
@@ -195,50 +194,50 @@ public class ResourceManager {
       e.printStackTrace();
     }
 
-    syntaxConvert(); 
+    syntaxConvert();
   }
 
   public static void semantic_LLexcel_reader(File excel) {
-	    int columnCount;
-	    int rowCount;
-	    Sheet sheet;
-	    Workbook book;
-	    Cell cell;
-	    LLanalysisdata = new Vector<Vector<String>>();
-	    LLanalysisdataTitle = new Vector<String>();
-	    try {
-	      book = Workbook.getWorkbook(excel);
+    int columnCount;
+    int rowCount;
+    Sheet sheet;
+    Workbook book;
+    Cell cell;
+    LLanalysisdata = new Vector<Vector<String>>();
+    LLanalysisdataTitle = new Vector<String>();
+    try {
+      book = Workbook.getWorkbook(excel);
 
-	      // 获得第一个工作表对象(excel中sheet的编号从0开始,0,1,2,3,....)
-	      sheet = book.getSheet(0);
+      // 获得第一个工作表对象(excel中sheet的编号从0开始,0,1,2,3,....)
+      sheet = book.getSheet(0);
 
-	      // 获取行数与列数
-	      columnCount = sheet.getColumns();
-	      rowCount = sheet.getRows();
+      // 获取行数与列数
+      columnCount = sheet.getColumns();
+      rowCount = sheet.getRows();
 
-	      // 得到DFAdataTitle
-	      for (int i = 0; i < columnCount; i++) {
-	        cell = sheet.getCell(i, 0);
-	        LLanalysisdataTitle.add(cell.getContents());
-	      }
+      // 得到DFAdataTitle
+      for (int i = 0; i < columnCount; i++) {
+        cell = sheet.getCell(i, 0);
+        LLanalysisdataTitle.add(cell.getContents());
+      }
 
-	      for (int j = 1; j < rowCount; j++) {
-	        Vector<String> tempRow = new Vector<String>();
-	        // 循环读取
-	        for (int k = 0; k < columnCount; k++) {
-	          cell = sheet.getCell(k, j);
-	          tempRow.add(cell.getContents());
-	        }
-	        LLanalysisdata.add(tempRow);
-	      }
-	      book.close();
-	    } catch (Exception e) {
-	      e.printStackTrace();
-	    }
+      for (int j = 1; j < rowCount; j++) {
+        Vector<String> tempRow = new Vector<String>();
+        // 循环读取
+        for (int k = 0; k < columnCount; k++) {
+          cell = sheet.getCell(k, j);
+          tempRow.add(cell.getContents());
+        }
+        LLanalysisdata.add(tempRow);
+      }
+      book.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
-	    semanticConvert();
-	  }
-  
+    semanticConvert();
+  }
+
   private static Vector<Vector<String>> autoLexical(String text) {
     String dfaPath = System.getProperty("user.dir") + "\\res\\DFA.xls";
     File dfaXls = new File(dfaPath);
@@ -274,22 +273,25 @@ public class ResourceManager {
     // exportExcel(LLanalysisdataTitle, LLanalysisdata,
     // System.getProperty("user.dir") + "\\res\\Parser.xls");
   }
-  
-  //根据已有的Parser预测分析表和代码文件得出语法树并存放
+
+  // 根据已有的Parser预测分析表和代码文件得出语法树并存放
   public static void semanticAnalysis(String text) {
     Vector<Vector<String>> tokenData = autoLexical(text);
     SemanticParser2Tree p2t = new SemanticParser2Tree(semanticConverter, tokenData);
-    
-    semantic.Action.symbol = new Vector<Vector<String>>();
-    semantic.Action.intermediate = new Vector<Vector<String>>();
-    semantic.Action.offset = 0; // 偏移量
-    semantic.Action.index = 0; // 三地址序号
-    semantic.Action.declVar = new HashMap<String, Integer>();
-    semantic.Action.idn2Index = new HashMap<String, Integer>();
-    semantic.Action.errorData = new Vector<Vector<String>>();
-    
+
+    Action.offset = 0;
+    Action.index = 0;
+    Action.symbol = new Vector<Vector<String>>();
+    Action.intermediate = new Vector<Vector<String>>();
+    Action.errorData = new Vector<Vector<String>>();
+    Action.declVar.clear();
+    Action.idn2Index.clear();
+    Action.procIdnInfo.clear();
+
     p2t.analysis();
-    semanticRoot = p2t.getRoot(); 
+    semanticRoot = p2t.getRoot();
+    SyntaxErrordata = p2t.getErrorData();
+    Action.errorData.addAll(SyntaxErrordata);
   }
 
   // Syntax转为Parser
