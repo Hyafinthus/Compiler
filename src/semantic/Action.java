@@ -398,6 +398,22 @@ public class Action {
     }
   }
 
+  private static void nodeTypeArray2Inner(SemanticNode node) {
+    if (node.attr.get("type").startsWith("array")) {
+      node.attr.put("type", getArrayType(node.attr.get("addr").split("\\[")[0]));
+    }
+  }
+
+  // 数组内类型
+  private static String getArrayType(String idn) {
+    String idnType = symbol.get(declVar.get(idn)).get(2);
+    Pattern patternT = Pattern.compile("([a-z]+)(\\))");
+    Matcher matcherT = patternT.matcher(idnType);
+    matcherT.find();
+    String type = matcherT.group().replaceAll("\\)", "");
+    return type;
+  }
+
   // 优化: 自上向下传递arraytype 正则提取处理 计算每个L'offset 向上传递相加
   // 数组引用获取偏移量
   private static String getOffset(String idn, String quote) {
@@ -410,10 +426,7 @@ public class Action {
       length.add(Integer.valueOf(matcher.group().replaceAll("array\\(", "")));
     }
 
-    Pattern patternT = Pattern.compile("([a-z]+)(\\))");
-    Matcher matcherT = patternT.matcher(idnType);
-    matcherT.find();
-    String type = matcherT.group().replaceAll("\\)", "");
+    String type = getArrayType(idn);
     int width = 0;
     switch (type) {
       case "int":
@@ -465,6 +478,10 @@ public class Action {
 
     parent.attr.put("nextlist", "");
 
+    // 左右数组类型改为数组内类型
+    nodeTypeArray2Inner(L);
+    nodeTypeArray2Inner(E);
+
     if (L.attr.get("type").equals(E.attr.get("type"))) { // 类型匹配
       // 函数返回值赋值
       if (E.attr.get("addr").equals("proc")) {
@@ -474,9 +491,9 @@ public class Action {
 
       // 算术表达式赋值
       else {
-        if (equal.children.get(0).word.length() == 1) {
+        if (equal.children.get(0).word.length() == 1) { // =
           genAssign(SEM.lineIndex, L.attr.get("addr"), E.attr.get("addr"), "", "");
-        } else {
+        } else { // +=
           String Laddr = "t" + String.valueOf(index);
           genAssign(SEM.lineIndex, Laddr, L.attr.get("addr"),
               String.valueOf(equal.children.get(0).word.charAt(0)), E.attr.get("addr"));
@@ -484,8 +501,16 @@ public class Action {
         }
       }
     } else {
-      // TODO 错误处理 类型不匹配 强制类型转换
-      System.out.println("------------------------不匹配");
+      // 强制类型转换 int -> float
+      if (L.attr.get("type").equals("float") && E.attr.get("type").equals("int")) {
+        System.out.println("=======int转float");
+      } else {
+        Vector<String> error = new Vector<>();
+        error.add(SEM.lineIndex);
+        error.add(L.attr.get("addr"));
+        error.add("赋值类型与变量类型不匹配");
+        Action.errorData.add(error);
+      }
     }
   }
 
@@ -508,13 +533,14 @@ public class Action {
     SemanticNode parent = node.parrent;
     SemanticNode Lp = parent.children.get(2);
 
-    if (Lp.attr.containsKey("type")) {
+    if (Lp.attr.containsKey("type")) { // 数组引用
       parent.attr.put("addr", parent.attr.get("addr") + "["
           + getOffset(parent.attr.get("addr"), Lp.attr.get("type")) + "]");
+      nodeTypeArray2Inner(parent);
     }
   }
 
-  // 赋值 数组应用
+  // 赋值 数组引用
   // L' -> [E]L' {L'.type=E.addr L'.type}
   public static void assignArray(SemanticNode node) {
     SemanticNode parent = node.parrent;
@@ -528,6 +554,12 @@ public class Action {
     }
   }
 
+  // 优化: ppx 在G中生成三元式 在E'-空中转换综合&继承
+  // E
+  // G1 {} E' {}
+  // - G2 {} E' {}
+  // * G3 {} E' {}
+  // e {}
   // 赋值右部 算术表达式
   // E -> G E' {E.type=G.type; E.addr=G.addr 'E'.opr' E'.addr 可能为空}
   public static void assignExp(SemanticNode node) {
@@ -535,50 +567,99 @@ public class Action {
     SemanticNode G = parent.children.get(0);
     SemanticNode Ep = parent.children.get(1);
 
+    // nodeTypeArray2Inner(G);
+
     String Eaddr = "t" + String.valueOf(index);
     parent.attr.put("addr", Eaddr);
     parent.attr.put("type", G.attr.get("type"));
 
+    // 后面没有E'
     if (!Ep.attr.containsKey("opr")) {
       if (G.attr.containsKey("val")) {
         parent.attr.put("addr", G.attr.get("val"));
       } else {
         parent.attr.put("addr", G.attr.get("addr"));
       }
-    } else {
-      if (G.attr.containsKey("val")) {
-        genAssign("", Eaddr, G.attr.get("val"), Ep.attr.get("opr"), Ep.attr.get("addr"));
-      } else {
-        genAssign("", Eaddr, G.attr.get("addr"), Ep.attr.get("opr"), Ep.attr.get("addr"));
+
+      parent.attr.put("", G.attr.get("type"));
+    }
+
+    // 后面有E'
+    else {
+      if (!G.attr.get("type").equals(Ep.attr.get("type"))) { // 类型不同
+        if ((G.attr.get("type").equals("float") && Ep.attr.get("type").equals("int"))
+            || (G.attr.get("type").equals("int") && Ep.attr.get("type").equals("float"))) { // 可转换
+          parent.attr.put("type", "float");
+        } else { // 不可转换
+          Vector<String> error = new Vector<>();
+          error.add("");
+          error.add(G.attr.containsKey("val") ? G.attr.get("val") : G.attr.get("addr"));
+          error.add("运算符两侧变量类型不匹配");
+          Action.errorData.add(error);
+        }
+      } else { // 类型相同
+        if (G.attr.containsKey("val")) {
+          genAssign("", Eaddr, G.attr.get("val"), Ep.attr.get("opr"), Ep.attr.get("addr"));
+        } else {
+          genAssign("", Eaddr, G.attr.get("addr"), Ep.attr.get("opr"), Ep.attr.get("addr"));
+        }
+
+        parent.attr.put("type", G.attr.get("type"));
       }
     }
   }
 
   // 增加赋值项
-  // E' -> + G E' {E'.opr=+; gen(E'.addr'='G.addr 'E'.opr' E'.addr 可能为空)}
+  // E' -> + G E1' {E'.opr=+; E'.type=G.type; G.type?=E1'.type; gen(E'.addr'='G.addr 'E1'.opr'
+  // E1'.addr 可能为空)}
   public static void assignOpr(SemanticNode node) {
     SemanticNode parent = node.parrent;
     SemanticNode OPR = parent.children.get(0);
     SemanticNode G = parent.children.get(1);
     SemanticNode Ep = parent.children.get(2);
 
+    // nodeTypeArray2Inner(G);
+
     String EpAddr = "t" + String.valueOf(index);
     parent.attr.put("addr", EpAddr);
-
     parent.attr.put("opr", OPR.word);
+
+    // 后面没有E'
     if (!Ep.attr.containsKey("opr")) {
       if (G.attr.containsKey("val")) {
         parent.attr.put("addr", G.attr.get("val"));
       } else {
         parent.attr.put("addr", G.attr.get("addr"));
       }
-    } else {
-      if (G.attr.containsKey("val")) {
-        genAssign(OPR.lineIndex, EpAddr, G.attr.get("val"), Ep.attr.get("opr"),
-            Ep.attr.get("addr"));
-      } else {
-        genAssign(OPR.lineIndex, EpAddr, G.attr.get("addr"), Ep.attr.get("opr"),
-            Ep.attr.get("addr"));
+
+      parent.attr.put("type", G.attr.get("type"));
+    }
+
+    // 后面有E'
+    else {
+      // nodeTypeArray2Inner(Ep);
+
+      if (!G.attr.get("type").equals(Ep.attr.get("type"))) { // 类型不同
+        if ((G.attr.get("type").equals("float") && Ep.attr.get("type").equals("int"))
+            || (G.attr.get("type").equals("int") && Ep.attr.get("type").equals("float"))) { // 可转换
+          parent.attr.put("type", "float");
+        } else { // 不可转换
+          Vector<String> error = new Vector<>();
+          error.add(OPR.lineIndex);
+          error.add(G.attr.containsKey("val") ? G.attr.get("val") : G.attr.get("addr"));
+          error.add("运算符两侧变量类型不匹配");
+          Action.errorData.add(error);
+        }
+      } else { // 类型相同
+        if (G.attr.containsKey("val")) {
+          genAssign(OPR.lineIndex, EpAddr, G.attr.get("val"), Ep.attr.get("opr"),
+              Ep.attr.get("addr"));
+        } else {
+          genAssign(OPR.lineIndex, EpAddr, G.attr.get("addr"), Ep.attr.get("opr"),
+              Ep.attr.get("addr"));
+        }
+
+        parent.attr.put("type", G.attr.get("type"));
       }
     }
   }

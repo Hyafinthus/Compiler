@@ -69,10 +69,10 @@ public class SemanticParser2Tree {
       } else if (!this.semanticConverter.nonterminals.contains(top)) {
         error(0); // 栈顶终结符与输入不符
       } else {
-        System.err.println(top);
+        // System.err.println(top);
         int rowIndex = this.semanticConverter.nonterminalIndex.get(top);
         // System.err.println(rowIndex);
-        System.err.println(token);
+        // System.err.println(token);
         int columnIndex = this.semanticConverter.analysisTitle.indexOf(token);
         // System.err.println(columnIndex);
 
