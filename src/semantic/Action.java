@@ -918,6 +918,7 @@ public class Action {
     SemanticNode BNode = SNode.children.get(2);
     SemanticNode K2Node = SNode.children.get(4);
     SemanticNode S1Node = SNode.children.get(5);
+    SemanticNode doNode = SNode.children.get(3);
     SNode.attr.put("nextlist", BNode.attr.get("falselist"));
     HashSet<String> S1nextList = new HashSet<String>();
     HashSet<String> BtrueList = new HashSet<String>();
@@ -927,7 +928,7 @@ public class Action {
     ctrlBackPatch(BtrueList, K2Node.attr.get("quad"));
 
     Vector<String> line = new Vector<String>();
-    line.add(" ");
+    line.add(doNode.lineIndex);
     line.add(String.valueOf(index));
     line.add("goto " + K1Node.attr.get("quad"));
     line.add("(j, _, _, " + K1Node.attr.get("quad") + ")");
