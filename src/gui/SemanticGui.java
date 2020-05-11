@@ -20,7 +20,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import resource.FileFilter;
 import resource.ResourceManager;
-import semantic.Action;
 
 public class SemanticGui extends JFrame implements ActionListener {
   private static final long serialVersionUID = -990548592332708520L;
@@ -41,7 +40,7 @@ public class SemanticGui extends JFrame implements ActionListener {
 
     // Frame初始化设置
     this.setLayout(null);
-    this.setTitle("语法分析");
+    this.setTitle("语义分析");
     this.setSize(1068, 768);
     this.setLocation(150, 150);
 
@@ -98,13 +97,13 @@ public class SemanticGui extends JFrame implements ActionListener {
         readAnalysisExcel();
       }
     } else if (e.getSource().equals(jb2)) {
-      // TODO
       ResourceManager.semanticAnalysis(this.txtjtp.getText());
+      @SuppressWarnings("unused")
       SemanticResultGui semanticResultGui = new SemanticResultGui();
     }
   }
 
-  private void readAnalysisExcel() { 
+  private void readAnalysisExcel() {
     this.jp2 = new JPanel();
     this.jp2.setSize(800, 600);
     this.jp2.setLocation(0, 0);
@@ -162,10 +161,10 @@ public class SemanticGui extends JFrame implements ActionListener {
     for (int i = 0; i < cm.getColumnCount(); i++) {
       TableColumn column = cm.getColumn(i);
       if (table.equals(jt1)) {
-    	column.setPreferredWidth(100);
+        column.setPreferredWidth(100);
         column.setMinWidth(100);
       } else if (table.equals(jt2)) {
-    	column.setPreferredWidth(150);
+        column.setPreferredWidth(150);
         column.setMinWidth(150);
       } else {
         column.setPreferredWidth(60);

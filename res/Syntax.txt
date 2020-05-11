@@ -1,8 +1,8 @@
 Program -> P				/*程序入口*/
 P -> DP | SP | ε
 D -> proc X idn(M){P} | T idn A; | record idn{P}	/*变量声明，记录声明，函数声明*/
-A -> =G | ,idn A | ε			/*声明时赋值，连续声明*/
-M -> X idn M'				/*参数类型声明*/
+A -> =E | ,idn A | ε				/*声明时赋值，连续声明*/
+M -> X idn M' | ε				/*参数类型声明*/
 M' -> , X idn M' | ε
 T -> XC
 X -> int | float | char				/*允许变量声明的类型*/
@@ -14,7 +14,7 @@ equal -> = | += | -= | *= | /=
 V -> ++ | --
 N -> case cst:SN | ε				/*switch语句内部结构*/
 E -> GE'					/*算术表达式*/
-E' -> +GE' | -GE' | *GE' | /GE' | %GE' | &GE' | |GE' | ε
+E' -> call idn(Elist) | +GE' | -GE' | *GE' | /GE' | %GE' | &GE' | |GE' | ε
 G -> (E) | cst | flt | oct | hex | chr | L		/*算术表达式的项*/
 L -> idn L'				/*对变量或数组进行赋值*/
 L' -> [E]L' | ε
@@ -24,5 +24,5 @@ H -> (B) | I relop E | true | false		/*逻辑表达式的项*/
 I -> G'E'
 G' -> cst | flt | oct | hex | chr | L
 relop -> < | <= | > | >= | == | !=
-Elist -> E Elist'				/*算术表达式列表*/
+Elist -> E Elist' | ε				/*算术表达式列表*/
 Elist' -> ,E Elist' | ε

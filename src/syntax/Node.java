@@ -23,7 +23,7 @@ public class Node {
   public void setWord(String word) {
     this.word = word;
     if (!terminal) {
-      System.err.println("出错: 非终结符赋值");
+      // System.err.println("出错: 非终结符赋值");
     }
   }
 

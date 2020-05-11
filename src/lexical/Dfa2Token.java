@@ -18,6 +18,8 @@ public class Dfa2Token {
   public List<String> tokens = new ArrayList<>();
   public List<String> tokenIndexs = new ArrayList<>();
 
+  public List<String> tokensForSyntax = new ArrayList<>();
+
   public List<String> errors = new ArrayList<>();
   public List<String> reasons = new ArrayList<>();
   public List<String> errorIndexs = new ArrayList<>();
@@ -36,7 +38,11 @@ public class Dfa2Token {
         String chara = String.valueOf(line.charAt(charIndex)); // 字符
 
         if (chara.equals(" ")) {
-          endOfWord();
+          if (this.dfa.dfaState.get(this.state).equals("注释内")) { // 注释中读入空格
+            pending.append(chara);
+          } else {
+            endOfWord();
+          }
         } else {
           String inputType = Keyword.getInputType(chara);
           Integer nextState = dfa.dfaTable.get(state).get(dfa.dfaInputIndex.get(inputType));
@@ -102,14 +108,14 @@ public class Dfa2Token {
 
       pending = new StringBuilder();
 
-      System.out.println(specie);
+      // System.out.println(specie);
       if (!specie.equals("CMT")) { // 跳过注释
 
         words.add(word);
 
-        // String token = "< " + specie + ", " + attr + " >";
-        // tokens.add(token);
-        tokens.add(specie);
+        String token = "< " + specie + ", " + attr + " >";
+        tokens.add(token);
+        tokensForSyntax.add(specie);
 
         tokenIndexs.add(String.valueOf(lineIndex + 1));
       }
@@ -174,6 +180,18 @@ public class Dfa2Token {
       tokenLine.add(this.tokenIndexs.get(i));
       tokenLine.add(this.words.get(i));
       tokenLine.add(this.tokens.get(i));
+      tokenData.add(tokenLine);
+    }
+    return tokenData;
+  }
+
+  public Vector<Vector<String>> getTokenForSyntaxData() {
+    Vector<Vector<String>> tokenData = new Vector<>();
+    for (int i = 0; i < this.words.size(); i++) {
+      Vector<String> tokenLine = new Vector<>();
+      tokenLine.add(this.tokenIndexs.get(i));
+      tokenLine.add(this.words.get(i));
+      tokenLine.add(this.tokensForSyntax.get(i));
       tokenData.add(tokenLine);
     }
     return tokenData;

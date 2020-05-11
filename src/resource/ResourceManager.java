@@ -242,7 +242,7 @@ public class ResourceManager {
     String dfaPath = System.getProperty("user.dir") + "\\res\\DFA.xls";
     File dfaXls = new File(dfaPath);
     DFAexcel_reader(dfaXls);
-    Vector<Vector<String>> tokens = lexicalAnalysis(text);
+    Vector<Vector<String>> tokens = lexicalAnalysis(text, true);
     Vector<String> last =
         new Vector<>(Arrays.asList(tokens.get(tokens.size() - 1).get(0), "$", "$"));
     tokens.add(last);
@@ -266,12 +266,12 @@ public class ResourceManager {
     LLanalysisdataTitle = syntaxConverter.getLLanalysisTitle();
     LLanalysisdata = syntaxConverter.getLLanalysisData();
 
-    // exportExcel(FirstFollowdataTitle, FirstFollowdata,
-    // System.getProperty("user.dir") + "\\res\\FirstFollow.xls");
-    // exportExcel(SelectdataTitle, Selectdata, System.getProperty("user.dir") +
-    // "\\res\\Select.xls");
-    // exportExcel(LLanalysisdataTitle, LLanalysisdata,
-    // System.getProperty("user.dir") + "\\res\\Parser.xls");
+    exportExcel(FirstFollowdataTitle, FirstFollowdata,
+        System.getProperty("user.dir") + "\\out\\syntaxFirstFollow.xls");
+    exportExcel(SelectdataTitle, Selectdata,
+        System.getProperty("user.dir") + "\\out\\syntaxSelect.xls");
+    exportExcel(LLanalysisdataTitle, LLanalysisdata,
+        System.getProperty("user.dir") + "\\out\\syntaxParser.xls");
   }
 
   // 根据已有的Parser预测分析表和代码文件得出语法树并存放
@@ -302,12 +302,12 @@ public class ResourceManager {
     LLanalysisdataTitle = semanticConverter.getLLanalysisTitle();
     LLanalysisdata = semanticConverter.getLLanalysisData();
 
-    // exportExcel(FirstFollowdataTitle, FirstFollowdata,
-    // System.getProperty("user.dir") + "\\res\\FirstFollow.xls");
-    // exportExcel(SelectdataTitle, Selectdata, System.getProperty("user.dir") +
-    // "\\res\\Select.xls");
-    // exportExcel(LLanalysisdataTitle, LLanalysisdata,
-    // System.getProperty("user.dir") + "\\res\\Parser.xls");
+    exportExcel(FirstFollowdataTitle, FirstFollowdata,
+        System.getProperty("user.dir") + "\\out\\semanticFirstFollow.xls");
+    exportExcel(SelectdataTitle, Selectdata,
+        System.getProperty("user.dir") + "\\out\\semanticSelect.xls");
+    exportExcel(LLanalysisdataTitle, LLanalysisdata,
+        System.getProperty("user.dir") + "\\out\\semanticParser.xls");
   }
 
   // NFA转换为DFA
@@ -319,7 +319,7 @@ public class ResourceManager {
   }
 
   // 根据已有的DFA转换表和输入文件得出Token序列结果并存放
-  public static Vector<Vector<String>> lexicalAnalysis(String text) {
+  public static Vector<Vector<String>> lexicalAnalysis(String text, boolean forSyntax) {
     // 创建Dfa对象 传入DFA信息
     Dfa dfa = new Dfa(DFAdataTitle, DFAdata);
     String[] lines = text.split("\n");
@@ -328,15 +328,22 @@ public class ResourceManager {
     try {
       Dfa2Token dfa2Token = new Dfa2Token(dfa, lines);
       dfa2Token.analysis();
-      Tokendata = dfa2Token.getTokenData();
+
       Errordata = dfa2Token.getErrorData();
-      return dfa2Token.getTokenData();
+      Tokendata = dfa2Token.getTokenData();
+
+      if (forSyntax) {
+        return dfa2Token.getTokenForSyntaxData();
+      } else {
+        return dfa2Token.getTokenData();
+      }
     } catch (FileNotFoundException e1) {
       e1.printStackTrace();
       return null;
     }
   }
 
+  // 导出分析的First Follow Select为Excel
   private static void exportExcel(Vector<String> dataTitle, Vector<Vector<String>> data,
       String targetfile) {
     String worksheet = "List"; // 输出的excel文件工作表名

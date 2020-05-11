@@ -553,7 +553,7 @@ public class Action {
     } else {
       // 强制类型转换 int -> float
       if (L.attr.get("type").equals("float") && E.attr.get("type").equals("int")) {
-        System.out.println("=======int转float");
+        // System.out.println("=======int转float");
         if (equal.children.get(0).word.length() == 1) { // =
           genAssign(SEM.lineIndex, L.attr.get("addr"), E.attr.get("addr"), "", "");
         } else { // +=
@@ -613,7 +613,7 @@ public class Action {
   }
 
   // 赋值 数组引用
-  // L' -> [E]L' {L'.type=E.addr L'.type}
+  // L' -> [ E ] L' {L'.type=E.addr L'.type}
   public static void assignArray(SemanticNode node) {
     SemanticNode parent = node.parrent;
     SemanticNode E = parent.children.get(1);
@@ -1130,8 +1130,8 @@ public class Action {
     SNode.attr.put("nextlist", "");
     Vector<String> line = new Vector<String>();
 
-    System.err.println("-------------------" + SNode.attr.get("return"));
-    System.err.println("-------------------" + ENode.attr.get("type"));
+    // System.err.println("-------------------" + SNode.attr.get("return"));
+    // System.err.println("-------------------" + ENode.attr.get("type"));
 
     if (ENode.attr.containsKey("type") && SNode.attr.containsKey("return")
         && !SNode.attr.get("return").equals(ENode.attr.get("type"))) {
@@ -1139,7 +1139,7 @@ public class Action {
       line.add(ENode.attr.get("addr"));
       line.add("函数声明返回值类型不匹配");
       Action.errorData.add(line);
-      System.out.println("=========================不匹配");
+      // System.out.println("=========================不匹配");
     }
     line = new Vector<String>();
     line.add(returnNode.lineIndex);
@@ -1371,13 +1371,13 @@ public class Action {
       line3.add(call.lineIndex);
       line3.add(idn.word);
       line3.add("调用了一个非函数");
-      System.out.println("===================调用了一个非函数");
+      // System.out.println("===================调用了一个非函数");
       errorData.add(line3);
       return;
     }
 
     for (String str : procIdnInfo.get(idn.word).get("param").split(",")) {
-      System.out.println("----" + str);
+      // System.out.println("----" + str);
       parameterList.add(0, str);
       parameterNum++;
     }
@@ -1389,7 +1389,7 @@ public class Action {
       line.add(call.lineIndex);
       line.add(idn.word);
       line.add("参数数量不匹配");
-      System.out.println("===================参数数量不匹配");
+      // System.out.println("===================参数数量不匹配");
       errorData.add(line);
       parameterNumFlag = false;
     }
@@ -1400,7 +1400,7 @@ public class Action {
       String tempType = tempNode.attr.get("type");
 
       if (parameterNumFlag && !tempType.equals(parameterList.get(i))) {
-        System.out.println(tempStr + "---------" + parameterList.get(i));
+        // System.out.println(tempStr + "---------" + parameterList.get(i));
         parameterFlag = false;
       }
       Vector<String> line1 = new Vector<String>();
@@ -1427,7 +1427,7 @@ public class Action {
       line.add(call.lineIndex);
       line.add(idn.word);
       line.add("参数类型不匹配");
-      System.out.println("===================参数类型不匹配");
+      // System.out.println("===================参数类型不匹配");
       errorData.add(line);
     }
   }
@@ -1455,15 +1455,17 @@ public class Action {
       line3.add(call.lineIndex);
       line3.add(idn.word);
       line3.add("调用了一个非函数");
-      System.out.println("===================调用了一个非函数");
+      // System.out.println("===================调用了一个非函数");
       errorData.add(line3);
       return;
     }
 
-    for (String str : procIdnInfo.get(idn.word).get("param").split(",")) {
-      System.out.println("----" + str);
-      parameterList.add(0, str);
-      parameterNum++;
+    if (procIdnInfo.get(idn.word).get("param") != null) {
+      for (String str : procIdnInfo.get(idn.word).get("param").split(",")) {
+        // System.out.println("----" + str);
+        parameterList.add(0, str);
+        parameterNum++;
+      }
     }
 
     node.parrent.attr.put("num", parameterNum + "");
@@ -1473,7 +1475,7 @@ public class Action {
       line.add(call.lineIndex);
       line.add(idn.word);
       line.add("参数数量不匹配");
-      System.out.println("===================参数数量不匹配");
+      // System.out.println("===================参数数量不匹配");
       errorData.add(line);
       parameterNumFlag = false;
     }
@@ -1484,7 +1486,7 @@ public class Action {
       String tempType = tempNode.attr.get("type");
 
       if (parameterNumFlag && !tempType.equals(parameterList.get(i))) {
-        System.out.println(tempStr + "---------" + parameterList.get(i));
+        // System.out.println(tempStr + "---------" + parameterList.get(i));
         parameterFlag = false;
       }
       Vector<String> line1 = new Vector<String>();
@@ -1502,7 +1504,7 @@ public class Action {
       line.add(call.lineIndex);
       line.add(idn.word);
       line.add("参数类型不匹配");
-      System.out.println("===================参数类型不匹配");
+      // System.out.println("===================参数类型不匹配");
       errorData.add(line);
     }
   }
@@ -1511,7 +1513,7 @@ public class Action {
   // Elist -> E Elist'{initialize_queue}
   public static void initializeQueue(SemanticNode node) {
     SemanticNode E = node.parrent.children.get(0);
-    System.out.println("============" + E.attr.get("addr"));
+    // System.out.println("============" + E.attr.get("addr"));
     if (E.attr.containsKey("addr")) {
       parametersQueue.offer(E);
     }
@@ -1521,7 +1523,7 @@ public class Action {
   // Elist' -> CMA E Elist'{E.addr 添加到队列队尾}
   public static void addParameter(SemanticNode node) {
     SemanticNode E = node.parrent.children.get(1);
-    System.out.println("============" + E.attr.get("addr"));
+    // System.out.println("============" + E.attr.get("addr"));
     if (E.attr.containsKey("addr")) {
       parametersQueue.offer(E);
     }

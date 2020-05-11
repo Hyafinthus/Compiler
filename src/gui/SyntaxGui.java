@@ -97,8 +97,8 @@ public class SyntaxGui extends JFrame implements ActionListener {
         readAnalysisExcel();
       }
     } else if (e.getSource().equals(jb2)) {
-      // TODO
       ResourceManager.syntaxAnalysis(this.txtjtp.getText());
+      @SuppressWarnings("unused")
       SyntaxResultGui syntaxResultGui = new SyntaxResultGui();
     }
   }
@@ -161,10 +161,10 @@ public class SyntaxGui extends JFrame implements ActionListener {
     for (int i = 0; i < cm.getColumnCount(); i++) {
       TableColumn column = cm.getColumn(i);
       if (table.equals(jt1)) {
-    	column.setPreferredWidth(100);
+        column.setPreferredWidth(100);
         column.setMinWidth(100);
       } else if (table.equals(jt2)) {
-    	column.setPreferredWidth(150);
+        column.setPreferredWidth(150);
         column.setMinWidth(150);
       } else {
         column.setPreferredWidth(60);

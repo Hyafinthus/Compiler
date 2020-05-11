@@ -46,7 +46,7 @@ public class SemanticParser2Tree {
         SemanticNode action = this.stack.pop();
         String function = action.data.replaceAll("[{}]", "");
         try {
-          System.out.println(function);
+          // System.out.println(function);
           Action.function.get(function).invoke(Action.class, action);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
           e.printStackTrace();
@@ -150,7 +150,7 @@ public class SemanticParser2Tree {
       }
       top = this.stack.peek().data;
     }
-    System.out.println("分析完成");
+    // System.out.println("分析完成");
 
   }
 
@@ -194,7 +194,7 @@ public class SemanticParser2Tree {
     String errorInfo;
 
     if (type == 1) {
-      System.err.println("SYNCH: 弹出栈顶非终结符");
+      // System.err.println("SYNCH: 弹出栈顶非终结符");
       errorNode = this.stack.pop();
 
       // 已扩展
@@ -206,7 +206,7 @@ public class SemanticParser2Tree {
       errorLine.add(this.tokenData.get(this.index).get(1)); // 错误项
       errorInfo = SemanticErrorInfo.message.get(errorNode.data);
     } else if (type == 2) {
-      System.err.println("PANIC: 忽略输入符号");
+      // System.err.println("PANIC: 忽略输入符号");
       errorNode = this.stack.peek();
 
       errorLine.add(this.tokenData.get(this.index).get(0)); // 行号
@@ -215,7 +215,7 @@ public class SemanticParser2Tree {
 
       this.index++;
     } else if (type == 0) {
-      System.err.println("ERROR: 弹出栈顶终结符");
+      // System.err.println("ERROR: 弹出栈顶终结符");
       errorNode = this.stack.pop();
 
       // 已扩展

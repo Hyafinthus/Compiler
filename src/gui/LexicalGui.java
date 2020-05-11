@@ -37,14 +37,14 @@ public class LexicalGui extends JFrame implements ActionListener {
 
   public LexicalGui(JTextPane jtp0) {
 
-	this.txtjtp = jtp0;  
-	  
+    this.txtjtp = jtp0;
+
     // Frame初始化设置
     this.setLayout(null);
     this.setTitle("词法分析");
     this.setSize(1068, 768);
     this.setLocation(200, 100);
-    
+
     this.setResizable(false);
 
     // this.add(card);
@@ -101,7 +101,7 @@ public class LexicalGui extends JFrame implements ActionListener {
     } else if (e.getSource().equals(jb3)) {
       // 读取excel文件到资源管理器中
       ResourceManager.NFAexcel_reader(FA);
-      ResourceManager.lexicalAnalysis(this.txtjtp.getText());
+      ResourceManager.lexicalAnalysis(this.txtjtp.getText(), false);
 
       // DFA转换表显示界面设置
       this.jt1 = new JTable(ResourceManager.DFAdata, ResourceManager.DFAdataTitle);
@@ -137,7 +137,7 @@ public class LexicalGui extends JFrame implements ActionListener {
     } else if (e.getSource().equals(jb4)) {
       // 读取excel文件到资源管理器中
       ResourceManager.DFAexcel_reader(FA);
-      ResourceManager.lexicalAnalysis(this.txtjtp.getText());
+      ResourceManager.lexicalAnalysis(this.txtjtp.getText(), false);
 
       // DFA转换表显示界面设置
       this.jt1 = new JTable(ResourceManager.DFAdata, ResourceManager.DFAdataTitle);
@@ -181,25 +181,25 @@ public class LexicalGui extends JFrame implements ActionListener {
     for (int i = 0; i < cm.getColumnCount(); i++) {
       TableColumn column = cm.getColumn(i);
       if (table.equals(jt2)) {
-        if(i == 2) {
-        	column.setPreferredWidth(120);
-            column.setMaxWidth(150);
-            column.setMinWidth(60);
-        }else {
-        	column.setPreferredWidth(80);
-            column.setMaxWidth(150);
-            column.setMinWidth(60);
+        if (i == 2) {
+          column.setPreferredWidth(120);
+          column.setMaxWidth(150);
+          column.setMinWidth(60);
+        } else {
+          column.setPreferredWidth(80);
+          column.setMaxWidth(150);
+          column.setMinWidth(60);
         }
       } else if (table.equals(jt3)) {
-    	  if(i == 2) {
-          	column.setPreferredWidth(160);
-              column.setMaxWidth(150);
-              column.setMinWidth(60);
-          }else {
-          	column.setPreferredWidth(85);
-              column.setMaxWidth(150);
-              column.setMinWidth(60);
-          }
+        if (i == 2) {
+          column.setPreferredWidth(160);
+          column.setMaxWidth(150);
+          column.setMinWidth(60);
+        } else {
+          column.setPreferredWidth(85);
+          column.setMaxWidth(150);
+          column.setMinWidth(60);
+        }
       } else {
         column.setPreferredWidth(60);
         column.setMaxWidth(100);
@@ -237,6 +237,6 @@ public class LexicalGui extends JFrame implements ActionListener {
       this.jp2.add(jsp2);
       this.jp2.add(jsp3);
       this.setContentPane(jp2);
-    } 
+    }
   }
 }

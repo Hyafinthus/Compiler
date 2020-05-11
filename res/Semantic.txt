@@ -1,0 +1,159 @@
+Program -> {offset=0} P
+
+P的函数声明中返回值与声明返回值类型检测
+P -> {P1.return = P.return} D P1
+
+处理S的递归生成,其中要传递声明函数的返回类型
+P -> {P1.return = P.return;S.return = P.return;} S K P1 {ctrl_p}
+
+处理P的空转移事件
+P -> ε{P.nextlist = null}
+
+===============================================================================
+
+变量声明
+D -> T idn {enter(idn.word,T.type,offset); offset=offset+T.width} A ;
+
+变量类型
+T -> X {t=X.type; w=X.width} C {T.type=C.type; T.width=C.width}
+
+变量声明赋值
+A -> = E {gen(idn'='E.addr)}
+
+变量连续声明
+A -> , idn {enter(idn.word,T.type,offset); offset=offset+T.width)} A
+
+基本变量类型
+X -> int {X.type=int; X.width=4}
+X -> float {X.type=float; X.width=8}
+X -> char {X.type=char; X.width=1}
+
+声明数组类型
+C -> [ cst ] C {C.type=array(cst.word,C.type); C.width=cst.word*C.width}
+
+变量声明结束
+C -> ε {C.type=t; C.width=w}
+
+===============================================================================
+
+记录声明
+D -> record idn {enter(idn.word,record,offset)} { P }
+
+===============================================================================
+
+函数声明
+D -> proc X idn {enter(idn.word,record:X.type,offset)} ( M ) { {P.return=X.type} P }
+
+参数声明
+M -> X idn {enter(idn.word,X.type,offset); offset=offset+X.width} M'
+
+参数连续声明
+M' -> , X idn {enter(idn.word,X.type,offset); offset=offset+X.width} M1' {M'.param=X.type","M1'.param}
+
+===============================================================================
+
+赋值语句
+S -> L equal E ; {checktype(L,E); S.nextlist=null; gen(L.addr'='E.addr) 可能是连等于}
+
+赋值左部 变量或数组引用
+L -> idn {L.type=idn.type; L.addr=loopkup(idn.word)} L' {L.addr=idn[getOffset(L'.type)]}
+
+数组引用
+L' -> [ E ] L' {L'.type=E.addr L'.type}
+
+调用有返回值的函数
+E -> call IDN SLP elist SRP SEM{对队列中每个参数t有gen('param' t); gen('call' IDN.addr ',' number)}
+
+赋值右部 算术表达式
+E -> G E' {E.type=G.type; E.addr=G.addr 'E'.opr' E'.addr 可能为空}
+
+增加赋值项
+E' -> + G E1' {E'.opr=+; E'.type=G.type; G.type?=E1'.type; gen(E'.addr'='G.addr 'E1'.opr' E1'.addr 可能为空)}
+
+括号优先级
+G -> (E) {G.type=E.type; G.addr=E.addr}
+
+赋值右部 基本变量
+G -> cst | flt | oct | hex | chr {G.type=base.type; G.val=base.word}
+
+赋值右部 变量
+G -> L {G.type=L.type; G.addr=L.addr}
+
+===============================================================================
+
+if控制流
+S -> if B then K1 S O else K2 S {S.nextlist = merge( merge(S1.nextlist, O.nextlist),S2.nextlist); backpatch(B.truelist,K1.quad); backpatch(B.falselist,K2.quad)}    
+
+while控制流
+S -> while K1 B do K2 S1 {S.nextlist = B.falselist; backpatch(S1.nextlist,K1.quad); backpatch(B.truelist,K2.quad); gen("goto" K1.quad)}
+
+switch控制流
+S -> switch ( IDN ) { {N.idn = IDN} N default : {label(Ln);} S1 } {S.nextlist = N.nextlist}
+
+for循环控制流
+S -> for ( S1 K1 B ; K2 IDN V {if V.type = "add": gen(IDN = IDN + 1); gen(goto K1.quad);else:gen(IDN = IDN - 1); gen(goto K1.quad);} ) { K3 S2 } {S.nextlist =B.falselist;backpatch(S1.nextlist,K1.quad); backpatch(B.truelist,K3.quad)backpatch(S2.nextlist,K2.quad); gen(goto K2.quad)}
+
+for循环判断递增
+V -> PLSPLS {V.type = "add"}
+
+for循环判断递减
+V -> MNSMNS {V.type = "minus"}
+
+switch中case的递归生成
+N -> case cst : {label(Ln-1);Ln = newlabel(); gen("if"IDN.word"!="cst"goto"Ln) } S O N1 {N.nextlist = Merge(Merge(S.nextlist,O.nextlist),N1.nextlist)}
+
+switch中case的空转移
+N -> ε {N.nextlist = null}
+
+调用函数
+S -> call IDN SLP elist SRP SEM{对队列中每个参数t有gen('param' t); gen('call' IDN.addr ',' number)}
+
+函数声明语句中的return语句的翻译与类型检查
+S -> return E ; {S.nextlist=null;gen(return E.addr) if(S.return != E.type) error}
+
+===============================================================================
+
+B获得子节点B'的list
+B -> H {a} B'{B.truelist = B'.truelist; B.falselist = B'.falselist}
+
+取反操作（B为H取反）
+B -> not H{B.truelist = H.falselist; B.falselist = H.truelist}
+
+or,and语句中B'继承兄弟节点H的list
+B -> LOGORR/LOGAND K H {B'.exttruelist = H.truelist; B'.extfalselist = H.falselist} B' {a}
+
+B'继承兄弟节点H的list
+B' -> H {B'.exttruelist = H.truelist; B'.extfalselist = H.falselist} B' {a}
+
+布尔语句中or的相关操作
+B1' -> logorr K H {a} B2'{B1'.truelist = merge(B1'.exttruelist, B2'.truelist); B1'.falselist = B2'.falselist; backpatch(B1'.falselist, K.quad);}
+
+布尔语句中and的相关操作
+B1' -> logand K H {a} B2'{B1'.truelist = B2'.truelist; B1'.falselist = merge(B1'extfalselist, B2'.falselist); backpatch(B1'.truelist, K.quad);}
+
+B'为空时的动作
+B' -> ε {B'.truelist = B'.exttruelist; B'.falselist = B'.extfalselist}
+
+布尔表达式加上左右括号时的list传递
+H -> SLP B SRP{H.truelist = B.truelist; H.falselist = B.falselist}
+
+relop表达式的list生成，并传递给H
+H -> I relop E {H.truelist = makelist(nextquad); H.falselist = makelist(nextquad+1); gen('if' I.addr relop E.addr 'goto _'); gen('goto _');}
+
+true表达式生成list并传递给H
+H -> true {H.truelist = makelist(nextquad); gen('goto _');}
+
+false表达式生成list并传递给H
+H -> false {H.falselist = makelist(nextquad); gen('goto _');}
+
+参数队列初始化为只有一个E
+Elist -> E Elist'{将E.addr加入队列}
+
+参数队列追加参数
+Elist' -> CMA E Elist'{E.addr 添加到队列队尾}
+
+回填辅助非终结符K（M）的空转移动作,用于获取下一条指令序号
+K -> ε {K.quad = nextquad;}
+
+回填辅助非终结符O（N）的空转移动作,用于生成goto语句
+O -> ε { O.nextlist = makelist(nextquad);gen(‘goto _’);}

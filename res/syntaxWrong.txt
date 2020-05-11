@@ -1,5 +1,18 @@
 int a *;	 /*多了个乘号*/ 
+int a = ;
 record stack     /*少了左大括号*/
  int e;
  char g;}
+int a;
 float f = 2.1	 /*少了个分号*/  
+int a;
+switch(m){	/*缺少case*/
+  m = m +1;
+  default:
+  m = m +6;
+}
+int a;
+if (a)  /*不是布尔表达式*/
+int a;
+for(int a; i<1; i+) { /*++错误*/
+}

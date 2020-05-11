@@ -50,10 +50,10 @@ public class Parser2Tree {
       } else if (!this.syntaxConverter.nonterminals.contains(top)) {
         error(0); // 栈顶终结符与输入不符
       } else {
-        System.err.println(top);
+        // System.err.println(top);
         int rowIndex = this.syntaxConverter.nonterminalIndex.get(top);
         // System.err.println(rowIndex);
-        System.err.println(token);
+        // System.err.println(token);
         int columnIndex = this.syntaxConverter.analysisTitle.indexOf(token);
         // System.err.println(columnIndex);
 
@@ -113,7 +113,7 @@ public class Parser2Tree {
       }
       top = this.stack.peek().data;
     }
-    System.out.println("分析完成");
+    // System.out.println("分析完成");
 
   }
 
@@ -157,7 +157,7 @@ public class Parser2Tree {
     String errorInfo;
 
     if (type == 1) {
-      System.err.println("SYNCH: 弹出栈顶非终结符");
+      // System.err.println("SYNCH: 弹出栈顶非终结符");
       errorNode = this.stack.pop();
 
       // 已扩展
@@ -169,7 +169,7 @@ public class Parser2Tree {
       errorLine.add(this.tokenData.get(this.index).get(1)); // 错误项
       errorInfo = ErrorInfo.message.get(errorNode.data);
     } else if (type == 2) {
-      System.err.println("PANIC: 忽略输入符号");
+      // System.err.println("PANIC: 忽略输入符号");
       errorNode = this.stack.peek();
 
       errorLine.add(this.tokenData.get(this.index).get(0)); // 行号
@@ -178,7 +178,7 @@ public class Parser2Tree {
 
       this.index++;
     } else if (type == 0) {
-      System.err.println("ERROR: 弹出栈顶终结符");
+      // System.err.println("ERROR: 弹出栈顶终结符");
       errorNode = this.stack.pop();
 
       // 已扩展

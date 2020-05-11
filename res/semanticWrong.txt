@@ -1,0 +1,96 @@
+/*声明时错误*/
+/*声明时赋值类型不匹配*/
+proc float function0() {
+return 1.5;
+}
+int a0 = function0;
+	
+float[3][4] aa1;
+int a1,b1,c1 = aa1[2][3] + 5;
+	
+/*变量重复声明*/
+int a2;
+int a2=1;
+int b2;
+int b2,c2,d2;
+
+/*函数重复声明*/
+proc int function3() {
+return 1;
+}
+proc float function3() {
+return 1.5;
+}
+
+/*函数内返回值与声明不匹配*/
+proc int function4() {
+return 1.5;
+}
+
+/*使用时错误*/
+/*变量未声明使用*/
+a5 = 1;
+
+/*数组错误*/
+/*数组引用数组名不匹配*/
+int[2][4][3] a6;
+int b6;
+int c6;
+b6 = c6[2][3][4];
+
+/*数组引用索引类型不为常数*/
+int[2][4][3] a7;
+int b7;
+float c7 = 1.5;
+b7 = a7[2][3][c7];
+
+/*赋值时错误*/
+/*函数返回值与赋值类型不匹配*/
+int a8;
+proc float function8() {
+return 1.5;
+}
+a8 = call function8();
+
+/*算术表达式与赋值类型不匹配*/
+int a9;
+a9 = 1.5 * 2;
+
+/*数组与赋值类型不匹配*/
+/*左数组*/
+int[3][5][8] a10;
+float b10 = 1.5;
+a10[2][3][4] = b10;
+
+/*右数组*/	
+float[3][5][8] a11;
+int b11;
+b11 = a11[2][3][4];
+  
+/*算术表达式内错误*/
+/*算术运算符两侧变量类型不匹配*/
+int a12;
+a12 = 1 + 'a';
+int b12;
+b13 = 1 + 1.5;
+
+int aa13;
+int[3][5][8] hh13;
+int b13 = aa13 + hh13;
+
+/*函数调用有误*/
+/*调用了一个非函数*/
+int a14;
+call a14();
+
+/*函数形参与实参数量不符*/
+proc int function15(int j15, float k15) {
+  int z15;
+}
+call function15(1, 2.5, 3.5);
+
+/*函数形参与实参类型不符*/
+proc int function16(int j16, float k16) {
+  int z16;
+}
+call function16(1.5, 2.5);
